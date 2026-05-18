@@ -102,7 +102,7 @@ header {
 .date-apply:hover { opacity: 0.85; }
 
 /* KPI */
-.kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
 @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
 .kpi-card { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: 12px 14px; position: relative; overflow: hidden; }
 .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent, #388bfd); opacity: 0.7; }
@@ -112,9 +112,8 @@ header {
 .kpi-card.spend  { --accent: #388bfd; }
 .kpi-card.purch  { --accent: #3fb950; }
 .kpi-card.roas   { --accent: #a371f7; }
+.kpi-card.direct { --accent: #f0883e; }
 .kpi-card.cpp    { --accent: #f78166; }
-.kpi-card.impr   { --accent: #e3b341; }
-.kpi-card.clicks { --accent: #79c0ff; }
 .roas-good { color: #3fb950 !important; }
 .roas-mid  { color: #e3b341 !important; }
 .roas-bad  { color: #f78166 !important; }
@@ -388,12 +387,11 @@ select option { background: #161b22; color: #c9d1d9; }
 
   <!-- KPI -->
   <div class="kpi-grid">
-    <div class="kpi-card spend">  <div class="kpi-label">총 소진금액</div>   <div class="kpi-value" id="kpi-spend">—</div>       <div class="kpi-sub" id="kpi-spend-sub"></div></div>
-    <div class="kpi-card purch">  <div class="kpi-label">구매 수</div>       <div class="kpi-value" id="kpi-purchases">—</div>   <div class="kpi-sub" id="kpi-purch-sub"></div></div>
-    <div class="kpi-card roas">   <div class="kpi-label">ROAS</div>           <div class="kpi-value" id="kpi-roas">—</div>        <div class="kpi-sub" id="kpi-roas-sub"></div></div>
-    <div class="kpi-card cpp">    <div class="kpi-label">구매당 비용 (CPP)</div><div class="kpi-value" id="kpi-cpp">—</div>     <div class="kpi-sub" id="kpi-cpp-sub"></div></div>
-    <div class="kpi-card impr">   <div class="kpi-label">노출수</div>         <div class="kpi-value" id="kpi-impressions">—</div><div class="kpi-sub" id="kpi-impr-sub"></div></div>
-    <div class="kpi-card clicks"> <div class="kpi-label">클릭수</div>         <div class="kpi-value" id="kpi-clicks">—</div>     <div class="kpi-sub" id="kpi-clicks-sub"></div></div>
+    <div class="kpi-card spend">  <div class="kpi-label">총 소진금액</div>  <div class="kpi-value" id="kpi-spend">—</div>            <div class="kpi-sub" id="kpi-spend-sub"></div></div>
+    <div class="kpi-card purch">  <div class="kpi-label">구매 수</div>      <div class="kpi-value" id="kpi-purchases">—</div>        <div class="kpi-sub" id="kpi-purch-sub"></div></div>
+    <div class="kpi-card roas">   <div class="kpi-label">ROAS</div>          <div class="kpi-value" id="kpi-roas">—</div>             <div class="kpi-sub" id="kpi-roas-sub"></div></div>
+    <div class="kpi-card direct"> <div class="kpi-label">직접 ROAS</div>     <div class="kpi-value" id="kpi-direct-roas">—</div>      <div class="kpi-sub" id="kpi-direct-roas-sub"></div></div>
+    <div class="kpi-card cpp">    <div class="kpi-label">객단가</div>         <div class="kpi-value" id="kpi-cpp">—</div>              <div class="kpi-sub" id="kpi-cpp-sub"></div></div>
   </div>
 
   <!-- 드릴다운 브레드크럼 -->
@@ -827,27 +825,35 @@ function clearDrilldown() {
 
 function render() {
   const data = filtered();
-  let tSpend = 0, tPurch = 0, tImpr = 0, tClick = 0, tWRoas = 0;
-  data.forEach(c => { tSpend += c.spend; tPurch += c.purchases; tImpr += c.impressions; tClick += c.clicks; tWRoas += c.roas * c.spend; });
+  const isAd = currentLevel === "ad";
+  let tSpend = 0, tPurch = 0, tClick = 0, tWRoas = 0;
+  data.forEach(c => { tSpend += c.spend; tPurch += c.purchases; tClick += c.clicks; tWRoas += c.roas * c.spend; });
   const avgRoas = tSpend > 0 ? tWRoas / tSpend : 0;
   const cpp     = tPurch > 0 ? tSpend / tPurch : 0;
-  const ctr     = tImpr  > 0 ? (tClick / tImpr * 100) : 0;
+
+  // 직접ROAS 계산
+  const dsMap = buildDirectSalesMap(isAd);
+  let tDirect = 0;
+  data.forEach(c => {
+    const dv = lookupDirectSales(c.name, isAd, dsMap);
+    if (dv != null) tDirect += dv;
+  });
+  const directRoas = (tDirect > 0 && tSpend > 0) ? tDirect / tSpend : null;
 
   document.getElementById("kpi-spend").textContent        = fmtKRW(tSpend);
-  document.getElementById("kpi-spend-sub").textContent    = data.length + "개 " + (currentLevel === "ad" ? "소재" : "캠페인");
+  document.getElementById("kpi-spend-sub").textContent    = data.length + "개 " + (isAd ? "소재" : "캠페인");
   document.getElementById("kpi-purchases").textContent    = tPurch.toLocaleString() + "건";
   document.getElementById("kpi-purch-sub").textContent    = "전환율 " + (tClick > 0 ? (tPurch / tClick * 100).toFixed(2) : 0) + "%";
   document.getElementById("kpi-roas").textContent         = (avgRoas * 100).toFixed(0) + "%";
   document.getElementById("kpi-roas").className           = "kpi-value " + roasCls(avgRoas);
   document.getElementById("kpi-roas-sub").textContent     = avgRoas >= 1 ? "광고비 회수 중" : "⚠ 광고비 미회수";
+  document.getElementById("kpi-direct-roas").textContent  = directRoas != null ? (directRoas * 100).toFixed(0) + "%" : "—";
+  document.getElementById("kpi-direct-roas").className    = "kpi-value " + (directRoas != null ? roasCls(directRoas) : "");
+  document.getElementById("kpi-direct-roas-sub").textContent = directRoas != null ? "직접매출 " + fmtKRW(tDirect) : "데이터 없음";
   document.getElementById("kpi-cpp").textContent          = cpp > 0 ? fmtKRW(cpp) : "—";
   document.getElementById("kpi-cpp-sub").textContent      = "구매 " + tPurch + "건 기준";
-  document.getElementById("kpi-impressions").textContent  = fmtNum(tImpr);
-  document.getElementById("kpi-impr-sub").textContent     = "CTR " + ctr.toFixed(2) + "%";
-  document.getElementById("kpi-clicks").textContent       = fmtNum(tClick);
-  document.getElementById("kpi-clicks-sub").textContent   = "CTR " + ctr.toFixed(2) + "%";
 
-  document.getElementById("tableTitle").textContent = currentLevel === "ad" ? "소재 상세" : "캠페인 상세";
+  document.getElementById("tableTitle").textContent = isAd ? "소재 상세" : "캠페인 상세";
   if (viewMode === "daily") renderDailyTable(data);
   else renderTable(data);
 }
