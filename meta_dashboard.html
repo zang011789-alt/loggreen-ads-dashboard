@@ -1654,8 +1654,9 @@ function renderDailyTrendCharts() {
       });
     });
 
+    const CHART_EXCLUDE = new Set(['키로메디','노즈스파','슬로우픽션','노즈브리즈']);
     const series = Object.entries(productMap)
-      .filter(([, v]) => v.some(x => x > 0))
+      .filter(([ptype, v]) => !CHART_EXCLUDE.has(ptype) && v.some(x => x > 0))
       .sort((a, b) => b[1].reduce((s, x) => s + x, 0) - a[1].reduce((s, x) => s + x, 0));
 
     if (!series.length) return;
