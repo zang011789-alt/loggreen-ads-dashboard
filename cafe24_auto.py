@@ -5,8 +5,8 @@
 - 리더뮨 + 아웃코마 각각 로그인 -> JWT 토큰 발급 -> 어제 데이터 수집
 - 캠페인별 / 소재별 데이터 저장
 """
-import sys, io, asyncio, json, aiohttp, logging
-from datetime import date, timedelta
+import sys, io, asyncio, json, aiohttp, logging, subprocess
+from datetime import date, timedelta, datetime
 from pathlib import Path
 from playwright.async_api import async_playwright
 
@@ -235,6 +235,31 @@ async def main():
         f.write("window.CAFE24_DATA = ")
         json.dump(all_results, f, ensure_ascii=False, default=str)
         f.write(";")
+    log.info("파일 저장 완료")
+
+    # GitHub Pages 자동 push
+    try:
+        commit_msg = f"auto: {today_str} {datetime.now().strftime('%H:%M')} 직접값 업데이트"
+        subprocess.run(
+            ["git", "-C", str(OUTPUT_DIR), "add",
+             "cafe24_data.js", "cafe24_history.js"],
+            check=True, capture_output=True
+        )
+        result_commit = subprocess.run(
+            ["git", "-C", str(OUTPUT_DIR), "commit", "-m", commit_msg],
+            capture_output=True, text=True, encoding="utf-8"
+        )
+        if "nothing to commit" in result_commit.stdout:
+            log.info("git: 변경사항 없음 (push 생략)")
+        else:
+            subprocess.run(
+                ["git", "-C", str(OUTPUT_DIR), "push", "origin", "main"],
+                check=True, capture_output=True
+            )
+            log.info(f"git push 완료: {commit_msg}")
+    except subprocess.CalledProcessError as e:
+        log.error(f"git push 실패: {e.stderr.decode('utf-8', errors='ignore') if e.stderr else e}")
+
     log.info(f"=== 수집 완료 ===")
 
 asyncio.run(main())
