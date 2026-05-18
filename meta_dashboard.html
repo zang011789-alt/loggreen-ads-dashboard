@@ -902,14 +902,16 @@ function normKey(s) {
 function getC24DatesForMetaRange() {
   const dates = c24AvailDates();
   if (!dates.length) return [];
-  if (dateConfig.preset === "today") return [];        // 오늘 데이터 미수집
-  if (dateConfig.preset === "yesterday") return dates.slice(0, 1);
+  const todayStr     = new Date().toISOString().slice(0, 10);
+  const yesterdayStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (dateConfig.preset === "today")     return dates.filter(d => d === todayStr);
+  if (dateConfig.preset === "yesterday") return dates.filter(d => d === yesterdayStr);
   if (dateConfig.preset === "last_7d")  return dates.slice(0, 7);
   if (dateConfig.preset === "last_14d") return dates.slice(0, 14);
   if (dateConfig.preset === "last_30d") return dates.slice(0, 30);
   if (dateConfig.since && dateConfig.until)
     return dates.filter(d => d >= dateConfig.since && d <= dateConfig.until);
-  return dates.slice(0, 1);
+  return dates.filter(d => d === todayStr);
 }
 
 function buildDirectSalesMap(isAd) {
