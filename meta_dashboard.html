@@ -211,6 +211,11 @@ select option { background: #161b22; color: #c9d1d9; }
   75%{ transform: translateX(5px); }
 }
 .pw-error { font-size: 12px; color: #f78166; min-height: 16px; padding-left: 4px; }
+/* ── 일별 뷰 ── */
+.daily-header-row td { background: #1a2035 !important; font-weight: 700; color: #f0f6fc; border-top: 2px solid #30363d; padding: 10px 12px; }
+.daily-sub-row td { background: #0d1117; color: #8b949e; font-size: 12.5px; padding: 6px 12px 6px 20px; border-bottom: 1px solid #161b22; }
+.daily-sub-row td:first-child { color: #58a6ff; font-weight: 600; padding-left: 28px; }
+.daily-sub-row:last-child td { border-bottom: 2px solid #21262d; }
 </style>
 </head>
 <body>
@@ -293,6 +298,10 @@ select option { background: #161b22; color: #c9d1d9; }
       <div class="tab-group level-group">
         <button class="tab-btn active" data-level="campaign" onclick="setLevel(this)">캠페인별</button>
         <button class="tab-btn"        data-level="ad"       onclick="setLevel(this)">소재별</button>
+      </div>
+      <div class="tab-group view-group" style="margin-left:8px;">
+        <button class="tab-btn active" data-view="summary" onclick="setViewMode(this)">기간 합산</button>
+        <button class="tab-btn"        data-view="daily"   onclick="setViewMode(this)">일별로 보기</button>
       </div>
       <div class="tab-group product-group" id="productTabs"></div>
     </div>
@@ -403,8 +412,11 @@ let currentProd   = "all";
 let allData       = [];
 let sortKey       = "spend";
 let sortDir       = -1;
-let campaignCache = null;   // 캠페인별 캐시
-let adCache       = null;   // 소재별 캐시
+let campaignCache = null;
+let adCache       = null;
+let viewMode      = "summary";   // "summary" | "daily"
+let dailyCampaignCache = null;
+let dailyAdCache       = null;
 let currentSource   = "meta";  // "meta" | "cafe24"
 let filterCampaign  = null;    // 드릴다운 중인 캠페인명
 let c24DateFrom   = null;      // "YYYY-MM-DD" 또는 null (최신)
@@ -577,21 +589,97 @@ async function fetchInsightsLevel(level) {
   });
 }
 
+// ── 일별 API 호출 (time_increment=1) ──
+async function fetchInsightsDaily(level) {
+  const brand = BRANDS[currentBrand];
+  const isAd  = level === "ad";
+  const fields = isAd
+    ? "ad_name,campaign_name,spend,impressions,clicks,ctr,cpc,actions,purchase_roas,date_start"
+    : "campaign_name,spend,impressions,clicks,ctr,cpc,actions,purchase_roas,date_start";
+
+  const url = new URL(`https://graph.facebook.com/v21.0/${brand.accountId}/insights`);
+  url.searchParams.set("access_token", TOKEN);
+  url.searchParams.set("fields", fields);
+  url.searchParams.set("level", level);
+  url.searchParams.set("limit", "500");
+  url.searchParams.set("time_increment", "1");
+
+  const MAX_DAYS = 20;
+  if (dateConfig.preset === "last_30d") {
+    const until = new Date().toISOString().slice(0, 10);
+    const since = new Date(Date.now() - (MAX_DAYS - 1) * 86400000).toISOString().slice(0, 10);
+    url.searchParams.set("time_range", JSON.stringify({ since, until }));
+  } else if (dateConfig.preset) {
+    url.searchParams.set("date_preset", dateConfig.preset);
+  } else if (dateConfig.since && dateConfig.until) {
+    const sinceD = new Date(dateConfig.since);
+    const untilD = new Date(dateConfig.until);
+    const diff = Math.round((untilD - sinceD) / 86400000) + 1;
+    const since = diff > MAX_DAYS
+      ? new Date(untilD - (MAX_DAYS - 1) * 86400000).toISOString().slice(0, 10)
+      : dateConfig.since;
+    url.searchParams.set("time_range", JSON.stringify({ since, until: dateConfig.until }));
+  }
+
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error.message);
+
+  let rows = json.data || [];
+  let next = json.paging?.next;
+  while (next) {
+    const r = await fetch(next);
+    const j = await r.json();
+    rows = rows.concat(j.data || []);
+    next = j.paging?.next;
+  }
+
+  return rows.flatMap(c => {
+    const campName = c.campaign_name || "";
+    const product  = classify(campName);
+    if (!product) return [];
+    const spend = parseFloat(c.spend || 0);
+    const purchases = parseInt((c.actions || []).find(a => a.action_type === "purchase")?.value || 0);
+    const roas  = parseFloat((c.purchase_roas || [])[0]?.value || 0);
+    const clicks = parseInt(c.clicks || 0);
+    return [{
+      name:    isAd ? (c.ad_name || "—") : campName,
+      parent:  isAd ? campName : "",
+      product, spend, purchases, roas,
+      cpa:     purchases > 0 ? spend / purchases : 0,
+      cpc_val: parseFloat(c.cpc || 0) || (clicks > 0 ? spend / clicks : 0),
+      revenue: spend * roas,
+      cvr:     clicks > 0 ? purchases / clicks * 100 : 0,
+      impressions: parseInt(c.impressions || 0),
+      clicks, ctr: parseFloat(c.ctr || 0),
+      date: c.date_start || "",
+    }];
+  });
+}
+
 async function loadData() {
   if (!currentBrand) return;
   const btn = document.getElementById("refreshBtn");
   btn.classList.add("loading");
   document.getElementById("refreshIcon").textContent = "⟳";
   document.getElementById("tableContent").innerHTML =
-    `<div class="state-box"><div class="spinner"></div><div class="state-label">캠페인 + 소재 동시 로딩 중...</div></div>`;
+    `<div class="state-box"><div class="spinner"></div><div class="state-label">${viewMode === "daily" ? "일별 데이터 로딩 중..." : "캠페인 + 소재 동시 로딩 중..."}</div></div>`;
 
   try {
-    // 캠페인 + 소재 동시 호출 → 탭 전환 시 즉시 표시
-    [campaignCache, adCache] = await Promise.all([
-      fetchInsightsLevel("campaign"),
-      fetchInsightsLevel("ad"),
-    ]);
-    allData = currentLevel === "ad" ? adCache : campaignCache;
+    if (viewMode === "daily") {
+      [dailyCampaignCache, dailyAdCache] = await Promise.all([
+        fetchInsightsDaily("campaign"),
+        fetchInsightsDaily("ad"),
+      ]);
+      allData = currentLevel === "ad" ? dailyAdCache : dailyCampaignCache;
+    } else {
+      [campaignCache, adCache] = await Promise.all([
+        fetchInsightsLevel("campaign"),
+        fetchInsightsLevel("ad"),
+      ]);
+      allData = currentLevel === "ad" ? adCache : campaignCache;
+    }
     document.getElementById("lastUpdated").textContent =
       "업데이트: " + new Date().toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
     render();
@@ -655,7 +743,140 @@ function render() {
   document.getElementById("kpi-clicks-sub").textContent   = "CTR " + ctr.toFixed(2) + "%";
 
   document.getElementById("tableTitle").textContent = currentLevel === "ad" ? "소재 상세" : "캠페인 상세";
-  renderTable(data);
+  if (viewMode === "daily") renderDailyTable(data);
+  else renderTable(data);
+}
+
+// ── 일별 직접값 맵 (날짜|이름 → 금액) ──
+function buildDirectSalesMapByDate(isAd) {
+  const h = window.CAFE24_HISTORY;
+  if (!h || !currentBrand) return {};
+  const key = isAd ? "contents" : "campaigns";
+  const nameKey = isAd ? "term" : "campaign";
+  const result = {};
+  Object.entries(h).forEach(([dateKey, dayData]) => {
+    const bd = dayData?.[currentBrand];
+    if (!bd) return;
+    (bd[key] || []).forEach(r => {
+      const k = dateKey + "|" + normKey(r[nameKey] || "");
+      result[k] = (result[k] || 0) + parseInt(r.order_amount || 0);
+    });
+  });
+  return result;
+}
+
+function renderDailyTable(data) {
+  const isAd = currentLevel === "ad";
+
+  // 이름별 그룹핑
+  const groups = {};
+  data.forEach(row => {
+    if (!groups[row.name]) groups[row.name] = { name: row.name, parent: row.parent, product: row.product, rows: [] };
+    groups[row.name].rows.push(row);
+  });
+  Object.values(groups).forEach(g => g.rows.sort((a, b) => b.date.localeCompare(a.date)));
+
+  // 직접값 맵 (날짜별)
+  const dsMap = buildDirectSalesMapByDate(isAd);
+  const hasDirect = Object.keys(dsMap).length > 0;
+
+  // 그룹 합계 계산 + spend 내림차순 정렬
+  const groupList = Object.values(groups).map(g => {
+    let tSpend = 0, tPurch = 0, tRoasW = 0, tClick = 0, tImpr = 0, tDirect = 0;
+    g.rows.forEach(r => {
+      tSpend += r.spend; tPurch += r.purchases;
+      tRoasW += r.roas * r.spend; tClick += r.clicks; tImpr += r.impressions;
+      const dv = dsMap[r.date + "|" + normKey(r.name)];
+      if (dv != null) tDirect += dv;
+    });
+    const tRoas = tSpend > 0 ? tRoasW / tSpend : 0;
+    return { ...g, tSpend, tPurch, tRoas, tClick, tImpr, tDirect,
+      tCpa: tPurch > 0 ? tSpend / tPurch : 0,
+      tRevenue: tSpend * tRoas,
+      tCtr: tImpr > 0 ? tClick / tImpr * 100 : 0,
+      tCvr: tClick > 0 ? tPurch / tClick * 100 : 0,
+      tCpc: tClick > 0 ? tSpend / tClick : 0,
+    };
+  }).sort((a, b) => b.tSpend - a.tSpend);
+
+  // 제품 필터
+  const filtered = currentProd === "all" ? groupList : groupList.filter(g => g.product.id === currentProd);
+  document.getElementById("tableMeta").textContent = filtered.length + "개";
+
+  let html = `<table><thead><tr>`;
+  if (isAd) {
+    html += `<th>소재명</th><th>캠페인</th><th>CPA</th><th>광고비</th><th>ROAS</th><th>매출</th>`;
+    if (hasDirect) html += `<th>직접ROAS</th><th>직접값 매출</th>`;
+    html += `<th>구매수</th><th>CPC</th><th>CTR</th><th>CVR</th><th>제품</th>`;
+  } else {
+    html += `<th>캠페인명</th><th>제품</th><th>CPA</th><th>광고비</th><th>ROAS</th><th>매출</th>`;
+    if (hasDirect) html += `<th>직접ROAS</th><th>직접값 매출</th>`;
+    html += `<th>구매수</th><th>CPC</th><th>CTR</th><th>CVR</th>`;
+  }
+  html += `</tr></thead><tbody>`;
+
+  filtered.forEach(g => {
+    const tRoasPct = g.tRoas > 0 ? (g.tRoas * 100).toFixed(0) + "%" : "—";
+    const tDR = (g.tDirect > 0 && g.tSpend > 0) ? g.tDirect / g.tSpend : null;
+    const tDirectCell = hasDirect
+      ? `<td class="${tDR != null ? roasCls(tDR) : ''}">${tDR != null ? (tDR * 100).toFixed(0) + "%" : "—"}</td><td style="color:${g.tDirect > 0 ? "#f0883e" : "#4e5564"}">${g.tDirect > 0 ? fmtKRW(g.tDirect) : "—"}</td>`
+      : "";
+
+    // 헤더 행
+    if (isAd) {
+      html += `<tr class="daily-header-row">
+        <td title="${g.name}"><b>${g.name}</b></td><td class="cell-sub">${g.parent}</td>
+        <td>${g.tCpa > 0 ? fmtKRW(g.tCpa) : "—"}</td><td><b>${fmtKRW(g.tSpend)}</b></td>
+        <td class="${roasCls(g.tRoas)}"><b>${tRoasPct}</b></td><td>${g.tRevenue > 0 ? fmtKRW(g.tRevenue) : "—"}</td>
+        ${tDirectCell}
+        <td>${g.tPurch > 0 ? g.tPurch.toLocaleString() : "—"}</td>
+        <td>${g.tCpc > 0 ? fmtKRW(g.tCpc) : "—"}</td><td>${g.tCtr.toFixed(2)}%</td>
+        <td>${g.tCvr > 0 ? g.tCvr.toFixed(2) + "%" : "—"}</td>
+        <td><span class="tag tag-${g.product.id}">${g.product.label}</span></td></tr>`;
+    } else {
+      html += `<tr class="daily-header-row">
+        <td title="${g.name}"><b>${g.name}</b></td>
+        <td><span class="tag tag-${g.product.id}">${g.product.label}</span></td>
+        <td>${g.tCpa > 0 ? fmtKRW(g.tCpa) : "—"}</td><td><b>${fmtKRW(g.tSpend)}</b></td>
+        <td class="${roasCls(g.tRoas)}"><b>${tRoasPct}</b></td><td>${g.tRevenue > 0 ? fmtKRW(g.tRevenue) : "—"}</td>
+        ${tDirectCell}
+        <td>${g.tPurch > 0 ? g.tPurch.toLocaleString() : "—"}</td>
+        <td>${g.tCpc > 0 ? fmtKRW(g.tCpc) : "—"}</td><td>${g.tCtr.toFixed(2)}%</td>
+        <td>${g.tCvr > 0 ? g.tCvr.toFixed(2) + "%" : "—"}</td></tr>`;
+    }
+
+    // 날짜별 서브 행
+    g.rows.forEach(r => {
+      const roasPct = r.roas > 0 ? (r.roas * 100).toFixed(0) + "%" : "—";
+      const dv = dsMap[r.date + "|" + normKey(r.name)] ?? null;
+      const dr = (dv != null && r.spend > 0) ? dv / r.spend : null;
+      const dCell = hasDirect
+        ? `<td class="${dr != null ? roasCls(dr) : ''}" style="${dr == null ? "color:#4e5564" : ""}">${dr != null ? (dr * 100).toFixed(0) + "%" : "—"}</td><td style="color:${dv != null ? "#f0883e" : "#4e5564"}">${dv != null ? fmtKRW(dv) : "—"}</td>`
+        : "";
+      if (isAd) {
+        html += `<tr class="daily-sub-row">
+          <td>${r.date}</td><td>—</td>
+          <td>${r.cpa > 0 ? fmtKRW(r.cpa) : "—"}</td><td>${fmtKRW(r.spend)}</td>
+          <td class="${roasCls(r.roas)}">${roasPct}</td><td>${r.revenue > 0 ? fmtKRW(r.revenue) : "—"}</td>
+          ${dCell}
+          <td>${r.purchases > 0 ? r.purchases.toLocaleString() : "—"}</td>
+          <td>${r.cpc_val > 0 ? fmtKRW(r.cpc_val) : "—"}</td>
+          <td>${r.ctr.toFixed(2)}%</td><td>${r.cvr > 0 ? r.cvr.toFixed(2) + "%" : "—"}</td><td>—</td></tr>`;
+      } else {
+        html += `<tr class="daily-sub-row">
+          <td>${r.date}</td><td>—</td>
+          <td>${r.cpa > 0 ? fmtKRW(r.cpa) : "—"}</td><td>${fmtKRW(r.spend)}</td>
+          <td class="${roasCls(r.roas)}">${roasPct}</td><td>${r.revenue > 0 ? fmtKRW(r.revenue) : "—"}</td>
+          ${dCell}
+          <td>${r.purchases > 0 ? r.purchases.toLocaleString() : "—"}</td>
+          <td>${r.cpc_val > 0 ? fmtKRW(r.cpc_val) : "—"}</td>
+          <td>${r.ctr.toFixed(2)}%</td><td>${r.cvr > 0 ? r.cvr.toFixed(2) + "%" : "—"}</td></tr>`;
+      }
+    });
+  });
+
+  html += "</tbody></table>";
+  document.getElementById("tableContent").innerHTML = html;
 }
 
 function renderTable(data) {
@@ -778,14 +999,30 @@ function applyCustomDate() {
   loadData();
 }
 
+function setViewMode(btn) {
+  document.querySelectorAll(".view-group .tab-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  viewMode = btn.dataset.view;
+  dailyCampaignCache = null;
+  dailyAdCache = null;
+  filterCampaign = null;
+  document.getElementById("drilldownBar").style.display = "none";
+  loadData();
+}
+
 function setLevel(btn) {
   document.querySelectorAll(".level-group .tab-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
   currentLevel = btn.dataset.level;
   filterCampaign = null;
   document.getElementById("drilldownBar").style.display = "none";
-  const cache = currentLevel === "ad" ? adCache : campaignCache;
-  if (cache) { allData = cache; render(); } else loadData();
+  if (viewMode === "daily") {
+    const cache = currentLevel === "ad" ? dailyAdCache : dailyCampaignCache;
+    if (cache) { allData = cache; render(); } else loadData();
+  } else {
+    const cache = currentLevel === "ad" ? adCache : campaignCache;
+    if (cache) { allData = cache; render(); } else loadData();
+  }
 }
 
 function setProduct(btn) {
