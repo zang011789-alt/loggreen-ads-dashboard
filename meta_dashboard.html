@@ -1463,9 +1463,9 @@ function renderTodayProductSales() {
   const now = new Date();
   const updateLabel = `${now.getHours().toString().padStart(2,'0')}:00 기준`;
 
-  let html = `<div style="margin-bottom:10px;display:flex;align-items:center;gap:8px">
-    <span style="font-size:10px;color:#4e5564;letter-spacing:0.08em;text-transform:uppercase">오늘 직접매출</span>
-    <span style="font-size:10px;color:#3a4050">${updateLabel} · 1시간 자동 갱신</span>
+  let html = `<div style="margin-bottom:14px;display:flex;align-items:center;gap:8px">
+    <span style="font-size:11px;color:#6e7681;letter-spacing:0.08em;text-transform:uppercase;font-weight:600">오늘 직접매출</span>
+    <span style="font-size:11px;color:#3a4050">${updateLabel} · 30분 자동 갱신</span>
   </div>`;
 
   let hasAny = false;
@@ -1491,16 +1491,16 @@ function renderTodayProductSales() {
     hasAny = true;
     const total = types.reduce((s, [, v]) => s + v.sales, 0);
 
-    html += `<div style="margin-bottom:14px">
-      <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:${bc.color};text-transform:uppercase;margin-bottom:8px">${bc.label} <span style="color:#3a4050;font-weight:400">· 합계 ${fmtKRW(total)}</span></div>
-      <div style="display:flex;flex-wrap:wrap;gap:7px">`;
+    html += `<div style="margin-bottom:18px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;color:${bc.color};text-transform:uppercase;margin-bottom:10px">${bc.label} <span style="color:#4e5564;font-weight:400;font-size:11px">· 합계 ${fmtKRW(total)}</span></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">`;
 
     types.forEach(([ptype, data]) => {
       const color = TYPE_COLORS[ptype] || '#6e7681';
-      html += `<div style="background:#161b22;border:1px solid #21262d;border-radius:8px;padding:9px 14px;display:flex;flex-direction:column;gap:3px;min-width:110px">
-        <span style="font-size:10px;font-weight:700;color:${color}">${ptype}</span>
-        <span style="font-size:14px;font-weight:700;color:#f0f6fc;letter-spacing:-0.3px">${fmtKRW(data.sales)}</span>
-        <span style="font-size:10px;color:#6e7681">${data.orders.toLocaleString()}건</span>
+      html += `<div style="background:#161b22;border:1px solid #21262d;border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:5px">
+        <span style="font-size:11px;font-weight:700;color:${color}">${ptype}</span>
+        <span style="font-size:20px;font-weight:800;color:#f0f6fc;letter-spacing:-0.5px">${fmtKRW(data.sales)}</span>
+        <span style="font-size:11px;color:#6e7681">${data.orders.toLocaleString()}건</span>
       </div>`;
     });
 
