@@ -463,7 +463,7 @@ const TOKEN = "EAAiMnim7RA4BRVp3D04gFml7FMKFWlod9kXmXyxF7kMhCgZCSuJxZBnB1AZAU2JM
 const BRANDS = {
   ridermune: {
     label: "리더뮨",
-    accountId: "act_1298784661243955",
+    accountIds: ["act_1298784661243955"],
     products: [
       { id: "yb",  label: "노즈픽션", color: "#34d399", re: /yb/i  },
       { id: "tp",  label: "템퍼픽션", color: "#fb923c", re: /tp/i  },
@@ -474,7 +474,7 @@ const BRANDS = {
   },
   outcoma: {
     label: "아웃코마",
-    accountId: "act_829666406281342",
+    accountIds: ["act_829666406281342", "act_2899566870374752"],
     products: [
       { id: "do", label: "디오스톡", color: "#a78bfa", re: /do/i },
     ]
@@ -622,31 +622,33 @@ async function fetchInsightsLevel(level) {
     ? "ad_name,adset_name,campaign_name,spend,impressions,clicks,ctr,cpc,actions,purchase_roas"
     : "campaign_name,spend,impressions,clicks,ctr,cpc,actions,purchase_roas";
 
-  const url = new URL(`https://graph.facebook.com/v21.0/${brand.accountId}/insights`);
-  url.searchParams.set("access_token", TOKEN);
-  url.searchParams.set("fields", fields);
-  url.searchParams.set("level", level);
-  url.searchParams.set("limit", "500");
+  const fetchOneAccount = async (accountId) => {
+    const url = new URL(`https://graph.facebook.com/v21.0/${accountId}/insights`);
+    url.searchParams.set("access_token", TOKEN);
+    url.searchParams.set("fields", fields);
+    url.searchParams.set("level", level);
+    url.searchParams.set("limit", "500");
+    if (dateConfig.preset) {
+      url.searchParams.set("date_preset", dateConfig.preset);
+    } else {
+      url.searchParams.set("time_range", JSON.stringify({ since: dateConfig.since, until: dateConfig.until }));
+    }
+    const res = await fetch(url.toString());
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if (json.error) throw new Error(json.error.message);
+    let rows = json.data || [];
+    let next = json.paging?.next;
+    while (next) {
+      const r = await fetch(next);
+      const j = await r.json();
+      rows = rows.concat(j.data || []);
+      next = j.paging?.next;
+    }
+    return rows;
+  };
 
-  if (dateConfig.preset) {
-    url.searchParams.set("date_preset", dateConfig.preset);
-  } else {
-    url.searchParams.set("time_range", JSON.stringify({ since: dateConfig.since, until: dateConfig.until }));
-  }
-
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.message);
-
-  let rows = json.data || [];
-  let next = json.paging?.next;
-  while (next) {
-    const r = await fetch(next);
-    const j = await r.json();
-    rows = rows.concat(j.data || []);
-    next = j.paging?.next;
-  }
+  const rows = (await Promise.all(brand.accountIds.map(fetchOneAccount))).flat();
 
   return rows.flatMap(c => {
     const campName = c.campaign_name || "";
@@ -684,43 +686,46 @@ async function fetchInsightsDaily(level) {
     ? "ad_name,campaign_name,spend,impressions,clicks,ctr,cpc,actions,purchase_roas,date_start"
     : "campaign_name,spend,impressions,clicks,ctr,cpc,actions,purchase_roas,date_start";
 
-  const url = new URL(`https://graph.facebook.com/v21.0/${brand.accountId}/insights`);
-  url.searchParams.set("access_token", TOKEN);
-  url.searchParams.set("fields", fields);
-  url.searchParams.set("level", level);
-  url.searchParams.set("limit", "500");
-  url.searchParams.set("time_increment", "1");
-
   const MAX_DAYS = 20;
-  if (dateConfig.preset === "last_30d") {
-    const until = new Date().toISOString().slice(0, 10);
-    const since = new Date(Date.now() - (MAX_DAYS - 1) * 86400000).toISOString().slice(0, 10);
-    url.searchParams.set("time_range", JSON.stringify({ since, until }));
-  } else if (dateConfig.preset) {
-    url.searchParams.set("date_preset", dateConfig.preset);
-  } else if (dateConfig.since && dateConfig.until) {
-    const sinceD = new Date(dateConfig.since);
-    const untilD = new Date(dateConfig.until);
-    const diff = Math.round((untilD - sinceD) / 86400000) + 1;
-    const since = diff > MAX_DAYS
-      ? new Date(untilD - (MAX_DAYS - 1) * 86400000).toISOString().slice(0, 10)
-      : dateConfig.since;
-    url.searchParams.set("time_range", JSON.stringify({ since, until: dateConfig.until }));
-  }
 
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = await res.json();
-  if (json.error) throw new Error(json.error.message);
+  const fetchOneAccount = async (accountId) => {
+    const url = new URL(`https://graph.facebook.com/v21.0/${accountId}/insights`);
+    url.searchParams.set("access_token", TOKEN);
+    url.searchParams.set("fields", fields);
+    url.searchParams.set("level", level);
+    url.searchParams.set("limit", "500");
+    url.searchParams.set("time_increment", "1");
+    if (dateConfig.preset === "last_30d") {
+      const until = new Date().toISOString().slice(0, 10);
+      const since = new Date(Date.now() - (MAX_DAYS - 1) * 86400000).toISOString().slice(0, 10);
+      url.searchParams.set("time_range", JSON.stringify({ since, until }));
+    } else if (dateConfig.preset) {
+      url.searchParams.set("date_preset", dateConfig.preset);
+    } else if (dateConfig.since && dateConfig.until) {
+      const sinceD = new Date(dateConfig.since);
+      const untilD = new Date(dateConfig.until);
+      const diff = Math.round((untilD - sinceD) / 86400000) + 1;
+      const since = diff > MAX_DAYS
+        ? new Date(untilD - (MAX_DAYS - 1) * 86400000).toISOString().slice(0, 10)
+        : dateConfig.since;
+      url.searchParams.set("time_range", JSON.stringify({ since, until: dateConfig.until }));
+    }
+    const res = await fetch(url.toString());
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if (json.error) throw new Error(json.error.message);
+    let rows = json.data || [];
+    let next = json.paging?.next;
+    while (next) {
+      const r = await fetch(next);
+      const j = await r.json();
+      rows = rows.concat(j.data || []);
+      next = j.paging?.next;
+    }
+    return rows;
+  };
 
-  let rows = json.data || [];
-  let next = json.paging?.next;
-  while (next) {
-    const r = await fetch(next);
-    const j = await r.json();
-    rows = rows.concat(j.data || []);
-    next = j.paging?.next;
-  }
+  const rows = (await Promise.all(brand.accountIds.map(fetchOneAccount))).flat();
 
   return rows.flatMap(c => {
     const campName = c.campaign_name || "";
