@@ -357,6 +357,7 @@ select option { background: #161b22; color: #c9d1d9; }
         <button class="tab-btn active" data-c24view="campaigns" onclick="setC24View(this)">캠페인별</button>
         <button class="tab-btn" data-c24view="contents" onclick="setC24View(this)">소재별</button>
         <button class="tab-btn" data-c24view="channels" onclick="setC24View(this)">채널별</button>
+        <button class="tab-btn" data-c24view="products" onclick="setC24View(this)">상품별</button>
       </div>
     </div>
   </div>
@@ -1234,7 +1235,118 @@ function c24SortBy(key) {
   renderC24();
 }
 
+let c24ProdSortKey = "order_amount";
+let c24ProdSortDir = -1;
+
+function c24ProductType(name) {
+  const nm = (name || '').toLowerCase();
+  if (nm.includes('키즈픽션') || nm.includes('kidfiction')) return '키즈픽션';
+  if (nm.includes('노즈픽션')) return '노즈픽션';
+  if (nm.includes('템퍼픽션')) return '템퍼픽션';
+  if (nm.includes('아토픽션')) return '아토픽션';
+  if (nm.includes('노즈스파')) return '노즈스파';
+  if (nm.includes('노즈브리즈')) return '노즈브리즈';
+  if (nm.includes('슬로우픽션')) return '슬로우픽션';
+  if (nm.includes('키로메디')) return '키로메디';
+  if (nm.includes('바이오턴')) return '바이오턴';
+  if (nm.includes('디오스톡')) return '디오스톡';
+  return '기타';
+}
+
+function c24ProductRows() {
+  const h = window.CAFE24_HISTORY;
+  if (!h || !currentBrand) return [];
+  const dates = c24AvailDates();
+  const from = c24DateFrom || (dates[0] || "");
+  const to   = c24DateTo   || from;
+  const range = dates.filter(d => d >= to && d <= from);
+  const map = {};
+  range.forEach(d => {
+    const bd = h[d]?.[currentBrand];
+    if (!bd?.products) return;
+    bd.products.forEach(p => {
+      const key = p.product_no;
+      if (!map[key]) map[key] = { product_no: p.product_no, product_name: p.product_name, order_count: 0, order_amount: 0, cart_count: 0, exposure_count: 0 };
+      map[key].order_count    += parseInt(p.order_count    || 0);
+      map[key].order_amount   += parseInt(p.order_amount   || 0);
+      map[key].cart_count     += parseInt(p.cart_count     || 0);
+      map[key].exposure_count += parseInt(p.exposure_count || 0);
+    });
+  });
+  return Object.values(map);
+}
+
+function renderC24Products() {
+  buildC24DateSelects();
+  const dates = c24AvailDates();
+  if (!dates.length) {
+    document.getElementById("c24TableContent").innerHTML = `<div class="c24-no-data">cafe24_history.js 파일이 없습니다.<br>매일 09:00 자동 수집됩니다.</div>`;
+    document.getElementById("c24KpiBar").innerHTML = "";
+    return;
+  }
+  const from = c24DateFrom || (dates[0] || "");
+  const to   = c24DateTo   || from;
+  const dateLabel = from === to ? from : `${to} ~ ${from}`;
+
+  const rows = c24ProductRows().filter(p => p.order_amount > 0);
+  const sorted = [...rows].sort((a, b) => c24ProdSortDir * (parseFloat(a[c24ProdSortKey] ?? 0) - parseFloat(b[c24ProdSortKey] ?? 0)));
+
+  let tSales = 0, tOrders = 0;
+  rows.forEach(r => { tSales += r.order_amount; tOrders += r.order_count; });
+
+  document.getElementById("c24KpiBar").innerHTML = `
+    <div class="c24-kpi" style="--ac:#f0883e"><div class="kpi-label">총 매출</div><div class="kpi-value">${fmtKRW(tSales)}</div></div>
+    <div class="c24-kpi" style="--ac:#3fb950"><div class="kpi-label">주문수</div><div class="kpi-value">${tOrders.toLocaleString()}건</div></div>
+    <div class="c24-kpi" style="--ac:#e3b341"><div class="kpi-label">객단가</div><div class="kpi-value">${tOrders > 0 ? fmtKRW(Math.round(tSales / tOrders)) : "—"}</div></div>
+  `;
+
+  const col = (key, label) => {
+    const cls = c24ProdSortKey === key ? (c24ProdSortDir === 1 ? "sort-asc" : "sort-desc") : "";
+    return `<th class="${cls}" onclick="c24ProdSortBy('${key}')">${label}</th>`;
+  };
+
+  const TYPE_COLORS = { '노즈픽션':'#34d399','키즈픽션':'#38bdf8','템퍼픽션':'#fb923c','아토픽션':'#f87171','노즈스파':'#86efac','노즈브리즈':'#a3e635','슬로우픽션':'#e879f9','키로메디':'#fbbf24','바이오턴':'#60a5fa','디오스톡':'#a78bfa','기타':'#6e7681' };
+
+  let html = `<table><thead><tr>
+    ${col("product_name","상품명")}
+    <th>구분</th>
+    ${col("order_amount","주문금액")}
+    ${col("order_count","주문수")}
+    ${col("cart_count","장바구니")}
+    ${col("exposure_count","노출수")}
+  </tr></thead><tbody>`;
+
+  let tS = 0, tO = 0;
+  sorted.forEach(r => {
+    tS += r.order_amount; tO += r.order_count;
+    const ptype = c24ProductType(r.product_name);
+    const color = TYPE_COLORS[ptype] || '#6e7681';
+    const cleanName = (r.product_name || '').replace(/[🔒🔑🌕]/g, '').replace(/\[.*?\]/g, '').replace(/시크릿 할인페이지/g, '').trim();
+    html += `<tr>
+      <td class="cell-name" title="${r.product_name}">${cleanName}</td>
+      <td><span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${color}22;color:${color};font-weight:600">${ptype}</span></td>
+      <td>${fmtKRW(r.order_amount)}</td>
+      <td>${r.order_count.toLocaleString()}</td>
+      <td>${r.cart_count.toLocaleString()}</td>
+      <td>${r.exposure_count.toLocaleString()}</td>
+    </tr>`;
+  });
+  html += `<tr class="total-row"><td>합계 (${sorted.length}개)</td><td>—</td><td>${fmtKRW(tS)}</td><td>${tO.toLocaleString()}</td><td>—</td><td>—</td></tr>`;
+  html += "</tbody></table>";
+
+  document.getElementById("c24TableContent").innerHTML = html;
+  document.getElementById("c24TableTitle").textContent = `카페24 상품별 (${dateLabel})`;
+  document.getElementById("c24TableMeta").textContent  = `${sorted.length}개`;
+}
+
+function c24ProdSortBy(key) {
+  c24ProdSortDir = c24ProdSortKey === key ? c24ProdSortDir * -1 : -1;
+  c24ProdSortKey = key;
+  renderC24Products();
+}
+
 function renderC24() {
+  if (c24View === "products") { renderC24Products(); return; }
   buildC24DateSelects();
 
   const nameKey   = c24View === "campaigns" ? "campaign" : c24View === "contents" ? "term" : "channel";

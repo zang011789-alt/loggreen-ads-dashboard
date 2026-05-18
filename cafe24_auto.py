@@ -141,6 +141,12 @@ async def collect_brand(account, yesterday_str, today_str):
         if data:
             result["sales_yesterday"] = data.get("highlights", [])
 
+        prod_params_yesterday = {"device_type": "total", "sort": "order_amount", "order": "desc", "offset": 0, "limit": 100, "start_date": yesterday_str, "end_date": yesterday_str}
+        data = await fetch_data(session, token, "/ca2/products/sales", prod_params_yesterday)
+        if data:
+            result["products_yesterday"] = data.get("sales", [])
+            log.info(f"[{account['name']}] products(어제): {len(result['products_yesterday'])}개")
+
         # ── 오늘 실시간 데이터 ──
         data = await fetch_data(session, token, "/ca2/adsources/campaigns", params_today)
         if data:
@@ -159,6 +165,12 @@ async def collect_brand(account, yesterday_str, today_str):
         data = await fetch_data(session, token, "/ca2/sales/highlights", params_today)
         if data:
             result["sales_today"] = data.get("highlights", [])
+
+        prod_params_today = {"device_type": "total", "sort": "order_amount", "order": "desc", "offset": 0, "limit": 100, "start_date": today_str, "end_date": today_str}
+        data = await fetch_data(session, token, "/ca2/products/sales", prod_params_today)
+        if data:
+            result["products_today"] = data.get("sales", [])
+            log.info(f"[{account['name']}] products(오늘): {len(result['products_today'])}개")
 
     return result
 
@@ -199,6 +211,7 @@ async def main():
             "contents":  result.get("contents_yesterday", []),
             "channels":  result.get("channels_yesterday", []),
             "sales":     result.get("sales_yesterday", []),
+            "products":  result.get("products_yesterday", []),
         }
 
     # 오늘 실시간 데이터 저장 (매 실행마다 덮어씌움)
@@ -209,6 +222,7 @@ async def main():
             "contents":  result.get("contents_today", []),
             "channels":  result.get("channels_today", []),
             "sales":     result.get("sales_today", []),
+            "products":  result.get("products_today", []),
         }
     log.info(f"오늘({today_str}) 실시간 데이터 저장 완료")
 
