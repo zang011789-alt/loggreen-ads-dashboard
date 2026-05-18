@@ -238,6 +238,9 @@ select option { background: #161b22; color: #c9d1d9; }
 <div id="brandScreen">
   <div class="brand-screen-logo"><em>로그린팀</em> 광고 대시보드</div>
 
+  <!-- 오늘 제품별 직접매출 -->
+  <div id="todayProductSales" style="width:100%;max-width:860px;display:none"></div>
+
   <!-- 브랜드 선택 -->
   <div style="text-align:center">
     <div class="brand-screen-title">브랜드를 선택하세요</div>
@@ -1439,6 +1442,76 @@ function renderC24() {
   document.getElementById("c24TableTitle").textContent = `카페24 ${nameLabel} (${dateLabel})`;
   document.getElementById("c24TableMeta").textContent  = `${sorted.length}개`;
 }
+
+function renderTodayProductSales() {
+  const container = document.getElementById("todayProductSales");
+  if (!container) return;
+  const h = window.CAFE24_HISTORY;
+  if (!h) { container.style.display = "none"; return; }
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayData = h[todayStr];
+  if (!todayData) { container.style.display = "none"; return; }
+
+  const TYPE_COLORS = {'노즈픽션':'#34d399','키즈픽션':'#38bdf8','템퍼픽션':'#fb923c','아토픽션':'#f87171','노즈스파':'#86efac','노즈브리즈':'#a3e635','슬로우픽션':'#e879f9','키로메디':'#fbbf24','바이오턴':'#60a5fa','디오스톡':'#a78bfa','기타':'#6e7681'};
+  const BRANDS_CFG = [
+    { id: 'ridermune', label: '리더뮨', color: '#4ade80' },
+    { id: 'outcoma',   label: '아웃코마', color: '#a78bfa' }
+  ];
+
+  const now = new Date();
+  const updateLabel = `${now.getHours().toString().padStart(2,'0')}:00 기준`;
+
+  let html = `<div style="margin-bottom:10px;display:flex;align-items:center;gap:8px">
+    <span style="font-size:10px;color:#4e5564;letter-spacing:0.08em;text-transform:uppercase">오늘 직접매출</span>
+    <span style="font-size:10px;color:#3a4050">${updateLabel} · 1시간 자동 갱신</span>
+  </div>`;
+
+  let hasAny = false;
+  BRANDS_CFG.forEach(bc => {
+    const bd = todayData[bc.id];
+    if (!bd?.products?.length) return;
+
+    const typeMap = {};
+    bd.products.forEach(p => {
+      const amt = parseInt(p.order_amount || 0);
+      if (!amt) return;
+      const ptype = c24ProductType(p.product_name);
+      if (!typeMap[ptype]) typeMap[ptype] = { sales: 0, orders: 0 };
+      typeMap[ptype].sales  += amt;
+      typeMap[ptype].orders += parseInt(p.order_count || 0);
+    });
+
+    const types = Object.entries(typeMap)
+      .filter(([, v]) => v.sales > 0)
+      .sort((a, b) => b[1].sales - a[1].sales);
+    if (!types.length) return;
+
+    hasAny = true;
+    const total = types.reduce((s, [, v]) => s + v.sales, 0);
+
+    html += `<div style="margin-bottom:14px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:${bc.color};text-transform:uppercase;margin-bottom:8px">${bc.label} <span style="color:#3a4050;font-weight:400">· 합계 ${fmtKRW(total)}</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px">`;
+
+    types.forEach(([ptype, data]) => {
+      const color = TYPE_COLORS[ptype] || '#6e7681';
+      html += `<div style="background:#161b22;border:1px solid #21262d;border-radius:8px;padding:9px 14px;display:flex;flex-direction:column;gap:3px;min-width:110px">
+        <span style="font-size:10px;font-weight:700;color:${color}">${ptype}</span>
+        <span style="font-size:14px;font-weight:700;color:#f0f6fc;letter-spacing:-0.3px">${fmtKRW(data.sales)}</span>
+        <span style="font-size:10px;color:#6e7681">${data.orders.toLocaleString()}건</span>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  if (!hasAny) { container.style.display = "none"; return; }
+
+  container.innerHTML = html;
+  container.style.display = "block";
+}
+
+window.addEventListener('load', renderTodayProductSales);
 
 </script>
 </body>
