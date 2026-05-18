@@ -1036,7 +1036,7 @@ function renderTable(data) {
       html += `<tr>
         <td class="cell-name" title="${c.name}">${c.name}</td>
         <td class="cell-sub m-hide" title="${c.parent}">${c.parent}</td>
-        <td>${c.cpa > 0 ? fmtS(c.cpa) : "—"}</td>
+        <td>${c.cpa > 0 ? fmtKRW(c.cpa) : "—"}</td>
         <td>${fN(c.spend)}</td>
         <td class="${roasCls(c.roas)}">${roasPct}</td>
         <td class="m-hide">${c.revenue > 0 ? fmtKRW(c.revenue) : "—"}</td>
@@ -1055,7 +1055,7 @@ function renderTable(data) {
           <span style="font-size:10px;color:#4e5564;margin-left:4px;">▶</span>
         </td>
         <td class="m-hide"><span class="tag tag-${c.product.id}">${c.product.label}</span></td>
-        <td>${c.cpa > 0 ? fmtS(c.cpa) : "—"}</td>
+        <td>${c.cpa > 0 ? fmtKRW(c.cpa) : "—"}</td>
         <td>${fN(c.spend)}</td>
         <td class="${roasCls(c.roas)}">${roasPct}</td>
         <td class="m-hide">${c.revenue > 0 ? fmtKRW(c.revenue) : "—"}</td>
