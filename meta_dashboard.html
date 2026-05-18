@@ -220,63 +220,74 @@ select option { background: #161b22; color: #c9d1d9; }
 /* ── MOBILE ── */
 @media (max-width: 768px) {
   /* 브랜드 선택 화면 */
-  #brandScreen { gap: 20px; padding: 24px 16px; justify-content: flex-start; padding-top: 40px; }
+  #brandScreen { gap: 20px; padding: 24px 16px; justify-content: flex-start; padding-top: 36px; }
   .brand-screen-title { font-size: 20px; }
   .brand-screen-sub { font-size: 12px; }
-  .brand-cards { flex-direction: column; gap: 12px; width: 100%; }
-  .brand-card { width: 100%; padding: 20px 20px; flex-direction: row; justify-content: flex-start; text-align: left; gap: 16px; }
-  .brand-card-badge { width: 44px; height: 44px; flex-shrink: 0; }
-  .brand-card-name { font-size: 17px; }
+  .brand-cards { flex-direction: column; gap: 10px; width: 100%; }
+  .brand-card { width: 100%; padding: 16px 18px; flex-direction: row; justify-content: flex-start; text-align: left; gap: 14px; }
+  .brand-card-badge { width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0; font-size: 18px; }
+  .brand-card-name { font-size: 16px; }
   .brand-card-products { font-size: 11px; }
 
-  /* 오늘 직접매출 카드 */
+  /* 오늘 직접매출 카드 — 2열 */
   #todayProductSales { max-width: 100%; }
   #todayProductSales [style*="grid-template-columns:repeat(4"] {
     grid-template-columns: repeat(2, 1fr) !important;
   }
 
-  /* 헤더 */
-  header { padding: 0 14px; height: 50px; }
-  .logo { font-size: 13px; gap: 6px; }
+  /* 헤더 — 2줄 레이아웃 */
+  header {
+    height: auto; padding: 9px 14px; flex-wrap: wrap; gap: 6px; align-items: center;
+  }
+  .logo { width: 100%; font-size: 13px; gap: 8px; justify-content: space-between; }
+  .header-right { width: 100%; justify-content: space-between; gap: 8px; }
   .last-updated { display: none; }
+  .refresh-btn { padding: 5px 10px; font-size: 12px; }
   .refresh-btn span:last-child { display: none; }
-  .refresh-btn { padding: 5px 9px; font-size: 12px; }
-  .source-tab { padding: 5px 10px; font-size: 12px; }
+  .source-tab { padding: 5px 11px; font-size: 12px; }
 
   /* 컨테이너 */
-  .container { padding: 14px 12px; }
+  .container { padding: 12px 10px; }
+  .controls { gap: 7px; margin-bottom: 14px; }
 
-  /* 탭 그룹 — 가로 스크롤 */
-  .ctrl-row { gap: 6px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
-  .tab-group { flex-shrink: 0; overflow-x: auto; }
-  .tab-btn { padding: 5px 10px; font-size: 11.5px; }
+  /* 탭 그룹 — 가로 스크롤, 줄바꿈 없음 */
+  .ctrl-row { gap: 6px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+  .ctrl-row::-webkit-scrollbar { display: none; }
+  .tab-group { flex-shrink: 0; }
+  .tab-btn { padding: 5px 9px; font-size: 11px; flex-shrink: 0; }
   .date-range { flex-shrink: 0; padding: 4px 8px; }
   .date-range input[type="date"] { font-size: 11px; }
-  .view-group { flex-shrink: 0; }
+  .view-group, .level-group { flex-shrink: 0; }
 
-  /* KPI */
+  /* KPI — 2열 */
   .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
-  .kpi-value { font-size: 16px; }
+  .kpi-value { font-size: 15px; }
   .kpi-card { padding: 10px 12px; }
 
-  /* 테이블 — 가로 스크롤 */
-  .table-section { border-radius: 8px; overflow: visible; }
-  .table-section > div:first-child { padding: 10px 14px; }
+  /* 테이블 — 모바일 컬럼 숨김 (JS에서 mobile-hide 클래스 추가) */
+  .table-section { border-radius: 8px; overflow: hidden; }
+  .table-section > .table-header-row { padding: 10px 12px; }
   .table-title { font-size: 12px; }
   #tableContent, #c24TableContent { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { min-width: 600px; }
-  .cell-name { max-width: 140px; }
+  table { min-width: unset; width: 100%; }
+  th { padding: 7px 8px; font-size: 10px; }
+  td { padding: 6px 8px; font-size: 11px; white-space: nowrap; }
+  .cell-name { max-width: 120px; font-size: 11px; }
+  .cell-sub  { max-width: 80px;  font-size: 10px; }
+  th.m-hide, td.m-hide { display: none; }
 
   /* 카페24 KPI */
   .c24-kpi-bar { gap: 7px; }
-  .c24-kpi { padding: 10px 12px; min-width: 100px; }
-  .c24-kpi .kpi-value { font-size: 17px; }
+  .c24-kpi { padding: 10px 12px; min-width: 90px; }
+  .c24-kpi .kpi-value { font-size: 16px; }
 
   /* 드릴다운 바 */
-  #drilldownBar { font-size: 11px; padding: 6px 10px; }
+  #drilldownBar { font-size: 11px; padding: 6px 10px; flex-wrap: wrap; gap: 6px; }
 
   /* 일별 뷰 */
-  .daily-sub-row td { font-size: 11px; padding: 5px 8px 5px 14px; }
+  .daily-header-row td { padding: 9px 8px; font-size: 11px; }
+  .daily-sub-row td { font-size: 10px; padding: 5px 8px 5px 12px; }
+  .daily-sub-row td:first-child { padding-left: 16px; }
 }
 </style>
 </head>
@@ -588,6 +599,14 @@ function classify(name) {
 
 // ── 포맷 ──
 function fmtKRW(n) { return Math.round(n).toLocaleString("ko-KR"); }
+function isMobile() { return window.innerWidth <= 768; }
+function fmtS(n) {  // 모바일용 숫자 축약
+  n = Math.round(n);
+  if (n >= 100000000) return (n/100000000).toFixed(1)+'억';
+  if (n >= 10000000)  return (n/10000000).toFixed(1)+'천만';
+  if (n >= 10000)     return Math.round(n/10000)+'만';
+  return n.toLocaleString();
+}
 function fmtNum(n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
   if (n >= 1000)    return (n / 1000).toFixed(1) + "K";
@@ -844,6 +863,8 @@ function buildDirectSalesMapByDate(isAd) {
 
 function renderDailyTable(data) {
   const isAd = currentLevel === "ad";
+  const mob  = isMobile();
+  const mh   = mob ? " m-hide" : "";
 
   // 이름별 그룹핑
   const groups = {};
@@ -853,11 +874,11 @@ function renderDailyTable(data) {
   });
   Object.values(groups).forEach(g => g.rows.sort((a, b) => b.date.localeCompare(a.date)));
 
-  // 직접값 맵 (날짜별) — { dateStr: { c24name: amount } }
+  // 직접값 맵 (날짜별)
   const dsMapByDate = buildDirectSalesMapByDate(isAd);
   const hasDirect = Object.values(dsMapByDate).some(m => Object.keys(m).length > 0);
 
-  // 그룹 합계 계산 + spend 내림차순 정렬
+  // 그룹 합계 + spend 내림차순
   const groupList = Object.values(groups).map(g => {
     let tSpend = 0, tPurch = 0, tRoasW = 0, tClick = 0, tImpr = 0, tDirect = 0;
     g.rows.forEach(r => {
@@ -882,13 +903,13 @@ function renderDailyTable(data) {
 
   let html = `<table><thead><tr>`;
   if (isAd) {
-    html += `<th>소재명</th><th>캠페인</th><th>CPA</th><th>광고비</th><th>ROAS</th><th>매출</th>`;
-    if (hasDirect) html += `<th>직접ROAS</th><th>직접값 매출</th>`;
-    html += `<th>구매수</th><th>CPC</th><th>CTR</th><th>CVR</th><th>제품</th>`;
+    html += `<th>소재명</th><th class="${mh.trim()}">캠페인</th><th>CPA</th><th>광고비</th><th>ROAS</th><th class="${mh.trim()}">매출</th>`;
+    if (hasDirect) html += `<th class="${mh.trim()}">직접ROAS</th><th class="${mh.trim()}">직접값</th>`;
+    html += `<th class="${mh.trim()}">구매수</th><th class="${mh.trim()}">CPC</th><th class="${mh.trim()}">CTR</th><th class="${mh.trim()}">CVR</th><th class="${mh.trim()}">제품</th>`;
   } else {
-    html += `<th>캠페인명</th><th>제품</th><th>CPA</th><th>광고비</th><th>ROAS</th><th>매출</th>`;
-    if (hasDirect) html += `<th>직접ROAS</th><th>직접값 매출</th>`;
-    html += `<th>구매수</th><th>CPC</th><th>CTR</th><th>CVR</th>`;
+    html += `<th>캠페인명</th><th class="${mh.trim()}">제품</th><th>CPA</th><th>광고비</th><th>ROAS</th><th class="${mh.trim()}">매출</th>`;
+    if (hasDirect) html += `<th class="${mh.trim()}">직접ROAS</th><th class="${mh.trim()}">직접값</th>`;
+    html += `<th class="${mh.trim()}">구매수</th><th class="${mh.trim()}">CPC</th><th class="${mh.trim()}">CTR</th><th class="${mh.trim()}">CVR</th>`;
   }
   html += `</tr></thead><tbody>`;
 
@@ -896,34 +917,34 @@ function renderDailyTable(data) {
     const tRoasPct = g.tRoas > 0 ? (g.tRoas * 100).toFixed(0) + "%" : "—";
     const tDR = (g.tDirect > 0 && g.tSpend > 0) ? g.tDirect / g.tSpend : null;
     const tDirectCell = hasDirect
-      ? `<td class="${tDR != null ? roasCls(tDR) : ''}">${tDR != null ? (tDR * 100).toFixed(0) + "%" : "—"}</td><td style="color:${g.tDirect > 0 ? "#f0883e" : "#4e5564"}">${g.tDirect > 0 ? fmtKRW(g.tDirect) : "—"}</td>`
+      ? `<td class="${mh.trim()} ${tDR != null ? roasCls(tDR) : ''}">${tDR != null ? (tDR * 100).toFixed(0) + "%" : "—"}</td><td class="${mh.trim()}" style="color:${g.tDirect > 0 ? "#f0883e" : "#4e5564"}">${g.tDirect > 0 ? fmtKRW(g.tDirect) : "—"}</td>`
       : "";
 
     // 헤더 행
     const escapedName = g.name.replace(/'/g, "\\'");
     if (isAd) {
       html += `<tr class="daily-header-row">
-        <td title="${g.name}"><b>${g.name}</b></td><td class="cell-sub">${g.parent}</td>
+        <td title="${g.name}"><b>${g.name}</b></td><td class="cell-sub${mh}">${g.parent}</td>
         <td>${g.tCpa > 0 ? fmtKRW(g.tCpa) : "—"}</td><td><b>${fmtKRW(g.tSpend)}</b></td>
-        <td class="${roasCls(g.tRoas)}"><b>${tRoasPct}</b></td><td>${g.tRevenue > 0 ? fmtKRW(g.tRevenue) : "—"}</td>
+        <td class="${roasCls(g.tRoas)}"><b>${tRoasPct}</b></td><td class="${mh.trim()}">${g.tRevenue > 0 ? fmtKRW(g.tRevenue) : "—"}</td>
         ${tDirectCell}
-        <td>${g.tPurch > 0 ? g.tPurch.toLocaleString() : "—"}</td>
-        <td>${g.tCpc > 0 ? fmtKRW(g.tCpc) : "—"}</td><td>${g.tCtr.toFixed(2)}%</td>
-        <td>${g.tCvr > 0 ? g.tCvr.toFixed(2) + "%" : "—"}</td>
-        <td><span class="tag tag-${g.product.id}">${g.product.label}</span></td></tr>`;
+        <td class="${mh.trim()}">${g.tPurch > 0 ? g.tPurch.toLocaleString() : "—"}</td>
+        <td class="${mh.trim()}">${g.tCpc > 0 ? fmtKRW(g.tCpc) : "—"}</td><td class="${mh.trim()}">${g.tCtr.toFixed(2)}%</td>
+        <td class="${mh.trim()}">${g.tCvr > 0 ? g.tCvr.toFixed(2) + "%" : "—"}</td>
+        <td class="${mh.trim()}"><span class="tag tag-${g.product.id}">${g.product.label}</span></td></tr>`;
     } else {
       html += `<tr class="daily-header-row">
         <td title="${g.name}" style="cursor:pointer;" onclick="drillDown('${escapedName}')">
           <span style="color:#58a6ff;text-decoration:underline dotted;"><b>${g.name}</b></span>
           <span style="font-size:10px;color:#4e5564;margin-left:4px;">▶</span>
         </td>
-        <td><span class="tag tag-${g.product.id}">${g.product.label}</span></td>
+        <td class="${mh.trim()}"><span class="tag tag-${g.product.id}">${g.product.label}</span></td>
         <td>${g.tCpa > 0 ? fmtKRW(g.tCpa) : "—"}</td><td><b>${fmtKRW(g.tSpend)}</b></td>
-        <td class="${roasCls(g.tRoas)}"><b>${tRoasPct}</b></td><td>${g.tRevenue > 0 ? fmtKRW(g.tRevenue) : "—"}</td>
+        <td class="${roasCls(g.tRoas)}"><b>${tRoasPct}</b></td><td class="${mh.trim()}">${g.tRevenue > 0 ? fmtKRW(g.tRevenue) : "—"}</td>
         ${tDirectCell}
-        <td>${g.tPurch > 0 ? g.tPurch.toLocaleString() : "—"}</td>
-        <td>${g.tCpc > 0 ? fmtKRW(g.tCpc) : "—"}</td><td>${g.tCtr.toFixed(2)}%</td>
-        <td>${g.tCvr > 0 ? g.tCvr.toFixed(2) + "%" : "—"}</td></tr>`;
+        <td class="${mh.trim()}">${g.tPurch > 0 ? g.tPurch.toLocaleString() : "—"}</td>
+        <td class="${mh.trim()}">${g.tCpc > 0 ? fmtKRW(g.tCpc) : "—"}</td><td class="${mh.trim()}">${g.tCtr.toFixed(2)}%</td>
+        <td class="${mh.trim()}">${g.tCvr > 0 ? g.tCvr.toFixed(2) + "%" : "—"}</td></tr>`;
     }
 
     // 날짜별 서브 행
@@ -932,26 +953,26 @@ function renderDailyTable(data) {
       const dv = lookupDirectSales(r.name, isAd, dsMapByDate[r.date] || {});
       const dr = (dv != null && r.spend > 0) ? dv / r.spend : null;
       const dCell = hasDirect
-        ? `<td class="${dr != null ? roasCls(dr) : ''}" style="${dr == null ? "color:#4e5564" : ""}">${dr != null ? (dr * 100).toFixed(0) + "%" : "—"}</td><td style="color:${dv != null ? "#f0883e" : "#4e5564"}">${dv != null ? fmtKRW(dv) : "—"}</td>`
+        ? `<td class="${mh.trim()} ${dr != null ? roasCls(dr) : ''}" style="${dr == null ? "color:#4e5564" : ""}">${dr != null ? (dr * 100).toFixed(0) + "%" : "—"}</td><td class="${mh.trim()}" style="color:${dv != null ? "#f0883e" : "#4e5564"}">${dv != null ? fmtKRW(dv) : "—"}</td>`
         : "";
       if (isAd) {
         html += `<tr class="daily-sub-row">
-          <td>${r.date}</td><td>—</td>
+          <td>${r.date}</td><td class="${mh.trim()}">—</td>
           <td>${r.cpa > 0 ? fmtKRW(r.cpa) : "—"}</td><td>${fmtKRW(r.spend)}</td>
-          <td class="${roasCls(r.roas)}">${roasPct}</td><td>${r.revenue > 0 ? fmtKRW(r.revenue) : "—"}</td>
+          <td class="${roasCls(r.roas)}">${roasPct}</td><td class="${mh.trim()}">${r.revenue > 0 ? fmtKRW(r.revenue) : "—"}</td>
           ${dCell}
-          <td>${r.purchases > 0 ? r.purchases.toLocaleString() : "—"}</td>
-          <td>${r.cpc_val > 0 ? fmtKRW(r.cpc_val) : "—"}</td>
-          <td>${r.ctr.toFixed(2)}%</td><td>${r.cvr > 0 ? r.cvr.toFixed(2) + "%" : "—"}</td><td>—</td></tr>`;
+          <td class="${mh.trim()}">${r.purchases > 0 ? r.purchases.toLocaleString() : "—"}</td>
+          <td class="${mh.trim()}">${r.cpc_val > 0 ? fmtKRW(r.cpc_val) : "—"}</td>
+          <td class="${mh.trim()}">${r.ctr.toFixed(2)}%</td><td class="${mh.trim()}">${r.cvr > 0 ? r.cvr.toFixed(2) + "%" : "—"}</td><td class="${mh.trim()}">—</td></tr>`;
       } else {
         html += `<tr class="daily-sub-row">
-          <td>${r.date}</td><td>—</td>
+          <td>${r.date}</td><td class="${mh.trim()}">—</td>
           <td>${r.cpa > 0 ? fmtKRW(r.cpa) : "—"}</td><td>${fmtKRW(r.spend)}</td>
-          <td class="${roasCls(r.roas)}">${roasPct}</td><td>${r.revenue > 0 ? fmtKRW(r.revenue) : "—"}</td>
+          <td class="${roasCls(r.roas)}">${roasPct}</td><td class="${mh.trim()}">${r.revenue > 0 ? fmtKRW(r.revenue) : "—"}</td>
           ${dCell}
-          <td>${r.purchases > 0 ? r.purchases.toLocaleString() : "—"}</td>
-          <td>${r.cpc_val > 0 ? fmtKRW(r.cpc_val) : "—"}</td>
-          <td>${r.ctr.toFixed(2)}%</td><td>${r.cvr > 0 ? r.cvr.toFixed(2) + "%" : "—"}</td></tr>`;
+          <td class="${mh.trim()}">${r.purchases > 0 ? r.purchases.toLocaleString() : "—"}</td>
+          <td class="${mh.trim()}">${r.cpc_val > 0 ? fmtKRW(r.cpc_val) : "—"}</td>
+          <td class="${mh.trim()}">${r.ctr.toFixed(2)}%</td><td class="${mh.trim()}">${r.cvr > 0 ? r.cvr.toFixed(2) + "%" : "—"}</td></tr>`;
       }
     });
   });
@@ -977,15 +998,21 @@ function renderTable(data) {
   const dsMap = buildDirectSalesMap(isAd);
   const hasDirect = Object.keys(dsMap).length > 0;
 
+  const mob = isMobile();
+  const H = (key, label, hide) => {
+    const cls = (sortKey === key ? (sortDir === 1 ? "sort-asc" : "sort-desc") : "") + (hide ? " m-hide" : "");
+    return `<th class="${cls.trim()}" onclick="sortBy('${key}')">${label}</th>`;
+  };
+
   let html = `<table><thead><tr>`;
   if (isAd) {
-    html += `${col("name","소재명")}${col("parent","캠페인")}${col("cpa","CPA")}${col("spend","광고비")}${col("roas","ROAS")}${col("revenue","매출")}`;
-    if (hasDirect) html += `<th title="카페24 직접값 기준 ROAS">직접ROAS</th><th title="Cafe24 직접값 매출">직접값 매출</th>`;
-    html += `${col("purchases","구매수")}${col("cpc_val","CPC")}${col("ctr","CTR")}${col("cvr","CVR")}<th>제품</th>`;
+    html += `${H("name","소재명")}${H("parent","캠페인",mob)}${H("cpa","CPA")}${H("spend","광고비")}${H("roas","ROAS")}${H("revenue","매출",mob)}`;
+    if (hasDirect) html += `<th class="${mob?'m-hide':''}">직접ROAS</th><th class="${mob?'m-hide':''}">직접값</th>`;
+    html += `${H("purchases","구매수",mob)}${H("cpc_val","CPC",mob)}${H("ctr","CTR",mob)}${H("cvr","CVR",mob)}<th class="${mob?'m-hide':''}">제품</th>`;
   } else {
-    html += `${col("name","캠페인명")}<th>제품</th>${col("cpa","CPA")}${col("spend","광고비")}${col("roas","ROAS")}${col("revenue","매출")}`;
-    if (hasDirect) html += `<th title="카페24 직접값 기준 ROAS">직접ROAS</th><th title="Cafe24 직접값 매출">직접값 매출</th>`;
-    html += `${col("purchases","구매수")}${col("cpc_val","CPC")}${col("ctr","CTR")}${col("cvr","CVR")}`;
+    html += `${H("name","캠페인명")}<th class="${mob?'m-hide':''}">제품</th>${H("cpa","CPA")}${H("spend","광고비")}${H("roas","ROAS")}${H("revenue","매출",mob)}`;
+    if (hasDirect) html += `<th class="${mob?'m-hide':''}">직접ROAS</th><th class="${mob?'m-hide':''}">직접값</th>`;
+    html += `${H("purchases","구매수",mob)}${H("cpc_val","CPC",mob)}${H("ctr","CTR",mob)}${H("cvr","CVR",mob)}`;
   }
   html += `</tr></thead><tbody>`;
 
@@ -1000,24 +1027,26 @@ function renderTable(data) {
     if (directVal != null) tDirect += directVal;
     const directRoas = (directVal != null && c.spend > 0) ? directVal / c.spend : null;
     const directRoasPct = directRoas != null ? (directRoas * 100).toFixed(0) + "%" : "—";
+    const mh = mob ? ' class="m-hide"' : '';
     const directCell = hasDirect
-      ? `<td class="${directRoas != null ? roasCls(directRoas) : ''}" style="${directRoas == null ? 'color:#4e5564' : ''}">${directRoasPct}</td><td style="color:${directVal != null ? '#f0883e' : '#4e5564'}">${directVal != null ? fmtKRW(directVal) : "—"}</td>`
+      ? `<td${mh} class="${(mob?'m-hide ':'')+((directRoas != null ? roasCls(directRoas) : ''))}" style="${directRoas == null ? 'color:#4e5564' : ''}">${directRoasPct}</td><td${mh} style="color:${directVal != null ? '#f0883e' : '#4e5564'}">${directVal != null ? (mob?fmtS(directVal):fmtKRW(directVal)) : "—"}</td>`
       : "";
+    const fN = mob ? fmtS : fmtKRW;
 
     if (isAd) {
       html += `<tr>
         <td class="cell-name" title="${c.name}">${c.name}</td>
-        <td class="cell-sub"  title="${c.parent}">${c.parent}</td>
-        <td>${c.cpa > 0 ? fmtKRW(c.cpa) : "—"}</td>
-        <td>${fmtKRW(c.spend)}</td>
+        <td class="cell-sub m-hide" title="${c.parent}">${c.parent}</td>
+        <td>${c.cpa > 0 ? fmtS(c.cpa) : "—"}</td>
+        <td>${fN(c.spend)}</td>
         <td class="${roasCls(c.roas)}">${roasPct}</td>
-        <td>${c.revenue > 0 ? fmtKRW(c.revenue) : "—"}</td>
+        <td class="m-hide">${c.revenue > 0 ? fmtKRW(c.revenue) : "—"}</td>
         ${directCell}
-        <td>${c.purchases > 0 ? c.purchases.toLocaleString() : "—"}</td>
-        <td>${cpcFmt}</td>
-        <td>${c.ctr.toFixed(2)}%</td>
-        <td>${cvrFmt}</td>
-        <td><span class="tag tag-${c.product.id}">${c.product.label}</span></td>
+        <td class="m-hide">${c.purchases > 0 ? c.purchases.toLocaleString() : "—"}</td>
+        <td class="m-hide">${cpcFmt}</td>
+        <td class="m-hide">${c.ctr.toFixed(2)}%</td>
+        <td class="m-hide">${cvrFmt}</td>
+        <td class="m-hide"><span class="tag tag-${c.product.id}">${c.product.label}</span></td>
       </tr>`;
     } else {
       const escapedName = c.name.replace(/'/g, "\\'");
@@ -1026,16 +1055,16 @@ function renderTable(data) {
           <span style="color:#58a6ff;text-decoration:underline dotted;">${c.name}</span>
           <span style="font-size:10px;color:#4e5564;margin-left:4px;">▶</span>
         </td>
-        <td><span class="tag tag-${c.product.id}">${c.product.label}</span></td>
-        <td>${c.cpa > 0 ? fmtKRW(c.cpa) : "—"}</td>
-        <td>${fmtKRW(c.spend)}</td>
+        <td class="m-hide"><span class="tag tag-${c.product.id}">${c.product.label}</span></td>
+        <td>${c.cpa > 0 ? fmtS(c.cpa) : "—"}</td>
+        <td>${fN(c.spend)}</td>
         <td class="${roasCls(c.roas)}">${roasPct}</td>
-        <td>${c.revenue > 0 ? fmtKRW(c.revenue) : "—"}</td>
+        <td class="m-hide">${c.revenue > 0 ? fmtKRW(c.revenue) : "—"}</td>
         ${directCell}
-        <td>${c.purchases > 0 ? c.purchases.toLocaleString() : "—"}</td>
-        <td>${cpcFmt}</td>
-        <td>${c.ctr.toFixed(2)}%</td>
-        <td>${c.cvr > 0 ? c.cvr.toFixed(2) + "%" : "—"}</td>
+        <td class="m-hide">${c.purchases > 0 ? c.purchases.toLocaleString() : "—"}</td>
+        <td class="m-hide">${cpcFmt}</td>
+        <td class="m-hide">${c.ctr.toFixed(2)}%</td>
+        <td class="m-hide">${c.cvr > 0 ? c.cvr.toFixed(2) + "%" : "—"}</td>
       </tr>`;
     }
   });
@@ -1049,13 +1078,13 @@ function renderTable(data) {
   const tDirectRoas = (tDirect > 0 && tSpend > 0) ? tDirect / tSpend : null;
   const tDirectRoasPct = tDirectRoas != null ? (tDirectRoas * 100).toFixed(0) + "%" : "—";
   const totalDirectCell = hasDirect
-    ? `<td class="${tDirectRoas != null ? roasCls(tDirectRoas) : ''}">${tDirectRoasPct}</td><td style="color:#f0883e">${tDirect > 0 ? fmtKRW(tDirect) : "—"}</td>`
+    ? `<td class="m-hide ${tDirectRoas != null ? roasCls(tDirectRoas) : ''}">${tDirectRoasPct}</td><td class="m-hide" style="color:#f0883e">${tDirect > 0 ? fmtKRW(tDirect) : "—"}</td>`
     : "";
 
   if (isAd) {
-    html += `<tr class="total-row"><td>합계 (${sorted.length}개)</td><td>—</td><td>${tCpa > 0 ? fmtKRW(tCpa) : "—"}</td><td>${fmtKRW(tSpend)}</td><td class="${roasCls(tRoas)}">${tRoasPct}</td><td>${fmtKRW(tRevenue)}</td>${totalDirectCell}<td>${tPurch.toLocaleString()}</td><td>${tCpc > 0 ? fmtKRW(tCpc) : "—"}</td><td>${tCtr.toFixed(2)}%</td><td>${tCvr.toFixed(2)}%</td><td>—</td></tr>`;
+    html += `<tr class="total-row"><td>합계 (${sorted.length}개)</td><td class="m-hide">—</td><td>${tCpa > 0 ? fmtKRW(tCpa) : "—"}</td><td>${fmtKRW(tSpend)}</td><td class="${roasCls(tRoas)}">${tRoasPct}</td><td class="m-hide">${fmtKRW(tRevenue)}</td>${totalDirectCell}<td class="m-hide">${tPurch.toLocaleString()}</td><td class="m-hide">${tCpc > 0 ? fmtKRW(tCpc) : "—"}</td><td class="m-hide">${tCtr.toFixed(2)}%</td><td class="m-hide">${tCvr.toFixed(2)}%</td><td class="m-hide">—</td></tr>`;
   } else {
-    html += `<tr class="total-row"><td>합계 (${sorted.length}개)</td><td>—</td><td>${tCpa > 0 ? fmtKRW(tCpa) : "—"}</td><td>${fmtKRW(tSpend)}</td><td class="${roasCls(tRoas)}">${tRoasPct}</td><td>${fmtKRW(tRevenue)}</td>${totalDirectCell}<td>${tPurch.toLocaleString()}</td><td>${tCpc > 0 ? fmtKRW(tCpc) : "—"}</td><td>${tCtr.toFixed(2)}%</td><td>${tCvr.toFixed(2)}%</td></tr>`;
+    html += `<tr class="total-row"><td>합계 (${sorted.length}개)</td><td class="m-hide">—</td><td>${tCpa > 0 ? fmtKRW(tCpa) : "—"}</td><td>${fmtKRW(tSpend)}</td><td class="${roasCls(tRoas)}">${tRoasPct}</td><td class="m-hide">${fmtKRW(tRevenue)}</td>${totalDirectCell}<td class="m-hide">${tPurch.toLocaleString()}</td><td class="m-hide">${tCpc > 0 ? fmtKRW(tCpc) : "—"}</td><td class="m-hide">${tCtr.toFixed(2)}%</td><td class="m-hide">${tCvr.toFixed(2)}%</td></tr>`;
   }
   html += "</tbody></table>";
   document.getElementById("tableContent").innerHTML = html;
@@ -1367,20 +1396,22 @@ function renderC24Products() {
     <div class="c24-kpi" style="--ac:#e3b341"><div class="kpi-label">객단가</div><div class="kpi-value">${tOrders > 0 ? fmtKRW(Math.round(tSales / tOrders)) : "—"}</div></div>
   `;
 
-  const col = (key, label) => {
-    const cls = c24ProdSortKey === key ? (c24ProdSortDir === 1 ? "sort-asc" : "sort-desc") : "";
+  const mobP = isMobile();
+  const colP = (key, label, hide) => {
+    const sortCls = c24ProdSortKey === key ? (c24ProdSortDir === 1 ? "sort-asc" : "sort-desc") : "";
+    const cls = [sortCls, hide ? "m-hide" : ""].filter(Boolean).join(" ");
     return `<th class="${cls}" onclick="c24ProdSortBy('${key}')">${label}</th>`;
   };
 
   const TYPE_COLORS = { '노즈픽션':'#34d399','키즈픽션':'#38bdf8','템퍼픽션':'#fb923c','아토픽션':'#f87171','노즈스파':'#86efac','노즈브리즈':'#a3e635','슬로우픽션':'#e879f9','키로메디':'#fbbf24','바이오턴':'#60a5fa','디오스톡':'#a78bfa','기타':'#6e7681' };
 
   let html = `<table><thead><tr>
-    ${col("product_name","상품명")}
+    ${colP("product_name","상품명")}
     <th>구분</th>
-    ${col("order_amount","주문금액")}
-    ${col("order_count","주문수")}
-    ${col("cart_count","장바구니")}
-    ${col("exposure_count","노출수")}
+    ${colP("order_amount","주문금액")}
+    ${colP("order_count","주문수",mobP)}
+    ${colP("cart_count","장바구니",mobP)}
+    ${colP("exposure_count","노출수",mobP)}
   </tr></thead><tbody>`;
 
   let tS = 0, tO = 0;
@@ -1389,16 +1420,17 @@ function renderC24Products() {
     const ptype = c24ProductType(r.product_name);
     const color = TYPE_COLORS[ptype] || '#6e7681';
     const cleanName = (r.product_name || '').replace(/[🔒🔑🌕]/g, '').replace(/\[.*?\]/g, '').replace(/시크릿 할인페이지/g, '').trim();
+    const mhP = mobP ? ' m-hide' : '';
     html += `<tr>
       <td class="cell-name" title="${r.product_name}">${cleanName}</td>
       <td><span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${color}22;color:${color};font-weight:600">${ptype}</span></td>
       <td>${fmtKRW(r.order_amount)}</td>
-      <td>${r.order_count.toLocaleString()}</td>
-      <td>${r.cart_count.toLocaleString()}</td>
-      <td>${r.exposure_count.toLocaleString()}</td>
+      <td class="${mhP.trim()}">${r.order_count.toLocaleString()}</td>
+      <td class="${mhP.trim()}">${r.cart_count.toLocaleString()}</td>
+      <td class="${mhP.trim()}">${r.exposure_count.toLocaleString()}</td>
     </tr>`;
   });
-  html += `<tr class="total-row"><td>합계 (${sorted.length}개)</td><td>—</td><td>${fmtKRW(tS)}</td><td>${tO.toLocaleString()}</td><td>—</td><td>—</td></tr>`;
+  html += `<tr class="total-row"><td>합계 (${sorted.length}개)</td><td>—</td><td>${fmtKRW(tS)}</td><td class="${mobP?'m-hide':''}">${tO.toLocaleString()}</td><td class="${mobP?'m-hide':''}">—</td><td class="${mobP?'m-hide':''}">—</td></tr>`;
   html += "</tbody></table>";
 
   document.getElementById("c24TableContent").innerHTML = html;
@@ -1451,8 +1483,10 @@ function renderC24() {
     <div class="c24-kpi" style="--ac:#e3b341"><div class="kpi-label">객단가</div><div class="kpi-value">${fmtKRW(avgAov)}</div></div>
   `;
 
-  const col = (key, label) => {
-    const cls = c24SortKey === key ? (c24SortDir === 1 ? "sort-asc" : "sort-desc") : "";
+  const mob = isMobile();
+  const col = (key, label, hide) => {
+    const sortCls = c24SortKey === key ? (c24SortDir === 1 ? "sort-asc" : "sort-desc") : "";
+    const cls = [sortCls, hide ? "m-hide" : ""].filter(Boolean).join(" ");
     return `<th class="${cls}" onclick="c24SortBy('${key}')">${label}</th>`;
   };
 
@@ -1465,10 +1499,10 @@ function renderC24() {
     ${col(nameKey, nameLabel)}
     ${col("order_amount",          "매출")}
     ${col("order_count",           "구매수")}
-    ${col("inflow_count",          "유입수")}
-    ${col("purchase_rate",         "구매율")}
-    ${col("order_amount_per_order","객단가")}
-    ${col("order_amount_per_inflow","방문당매출")}
+    ${col("inflow_count",          "유입수",           mob)}
+    ${col("purchase_rate",         "구매율",           mob)}
+    ${col("order_amount_per_order","객단가",           mob)}
+    ${col("order_amount_per_inflow","방문당매출",      mob)}
   </tr></thead><tbody>`;
 
   let tS = 0, tO = 0, tI = 0;
@@ -1478,27 +1512,29 @@ function renderC24() {
     tI += parseInt(r.inflow_count  || 0);
     const nm = r[nameKey] || "(없음)";
     const cvr = parseFloat(r.purchase_rate || 0);
+    const mh = mob ? ' m-hide' : '';
     html += `<tr>
       <td class="cell-name" title="${nm}">${nm}</td>
       <td>${fmtKRW(r.order_amount || 0)}</td>
       <td>${parseInt(r.order_count || 0).toLocaleString()}</td>
-      <td>${parseInt(r.inflow_count || 0).toLocaleString()}</td>
-      <td>${cvr > 0 ? cvr.toFixed(1) + "%" : "—"}</td>
-      <td>${r.order_amount_per_order > 0 ? fmtKRW(r.order_amount_per_order) : "—"}</td>
-      <td>${r.order_amount_per_inflow > 0 ? fmtKRW(r.order_amount_per_inflow) : "—"}</td>
+      <td class="${mh.trim()}">${parseInt(r.inflow_count || 0).toLocaleString()}</td>
+      <td class="${mh.trim()}">${cvr > 0 ? cvr.toFixed(1) + "%" : "—"}</td>
+      <td class="${mh.trim()}">${r.order_amount_per_order > 0 ? fmtKRW(r.order_amount_per_order) : "—"}</td>
+      <td class="${mh.trim()}">${r.order_amount_per_inflow > 0 ? fmtKRW(r.order_amount_per_inflow) : "—"}</td>
     </tr>`;
   });
 
   const tCvr = tI > 0 ? (tO / tI * 100).toFixed(1) + "%" : "—";
   const tAov = tO > 0 ? fmtKRW(Math.round(tS / tO)) : "—";
+  const mhT = mob ? ' m-hide' : '';
   html += `<tr class="total-row">
     <td>합계 (${sorted.length}개)</td>
     <td>${fmtKRW(tS)}</td>
     <td>${tO.toLocaleString()}</td>
-    <td>${tI.toLocaleString()}</td>
-    <td>${tCvr}</td>
-    <td>${tAov}</td>
-    <td>—</td>
+    <td class="${mhT.trim()}">${tI.toLocaleString()}</td>
+    <td class="${mhT.trim()}">${tCvr}</td>
+    <td class="${mhT.trim()}">${tAov}</td>
+    <td class="${mhT.trim()}">—</td>
   </tr>`;
   html += "</tbody></table>";
 
