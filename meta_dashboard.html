@@ -707,7 +707,11 @@ function drillDown(campaignName) {
   currentLevel = "ad";
   document.getElementById("drilldownBar").style.display = "flex";
   document.getElementById("drilldownName").textContent = campaignName;
-  if (adCache) { allData = adCache; render(); } else loadData();
+  if (viewMode === "daily") {
+    if (dailyAdCache) { allData = dailyAdCache; render(); } else loadData();
+  } else {
+    if (adCache) { allData = adCache; render(); } else loadData();
+  }
 }
 
 function clearDrilldown() {
@@ -717,7 +721,11 @@ function clearDrilldown() {
     b.classList.toggle("active", b.dataset.level === "campaign");
   });
   currentLevel = "campaign";
-  if (campaignCache) { allData = campaignCache; render(); } else loadData();
+  if (viewMode === "daily") {
+    if (dailyCampaignCache) { allData = dailyCampaignCache; render(); } else loadData();
+  } else {
+    if (campaignCache) { allData = campaignCache; render(); } else loadData();
+  }
 }
 
 function render() {
@@ -747,7 +755,7 @@ function render() {
   else renderTable(data);
 }
 
-// ── 일별 직접값 맵 (날짜|이름 → 금액) ──
+// ── 일별 직접값 맵: { dateStr: { c24name: amount } } ──
 function buildDirectSalesMapByDate(isAd) {
   const h = window.CAFE24_HISTORY;
   if (!h || !currentBrand) return {};
@@ -757,9 +765,10 @@ function buildDirectSalesMapByDate(isAd) {
   Object.entries(h).forEach(([dateKey, dayData]) => {
     const bd = dayData?.[currentBrand];
     if (!bd) return;
+    if (!result[dateKey]) result[dateKey] = {};
     (bd[key] || []).forEach(r => {
-      const k = dateKey + "|" + normKey(r[nameKey] || "");
-      result[k] = (result[k] || 0) + parseInt(r.order_amount || 0);
+      const k = normKey(r[nameKey] || "");
+      result[dateKey][k] = (result[dateKey][k] || 0) + parseInt(r.order_amount || 0);
     });
   });
   return result;
@@ -776,9 +785,9 @@ function renderDailyTable(data) {
   });
   Object.values(groups).forEach(g => g.rows.sort((a, b) => b.date.localeCompare(a.date)));
 
-  // 직접값 맵 (날짜별)
-  const dsMap = buildDirectSalesMapByDate(isAd);
-  const hasDirect = Object.keys(dsMap).length > 0;
+  // 직접값 맵 (날짜별) — { dateStr: { c24name: amount } }
+  const dsMapByDate = buildDirectSalesMapByDate(isAd);
+  const hasDirect = Object.values(dsMapByDate).some(m => Object.keys(m).length > 0);
 
   // 그룹 합계 계산 + spend 내림차순 정렬
   const groupList = Object.values(groups).map(g => {
@@ -786,7 +795,7 @@ function renderDailyTable(data) {
     g.rows.forEach(r => {
       tSpend += r.spend; tPurch += r.purchases;
       tRoasW += r.roas * r.spend; tClick += r.clicks; tImpr += r.impressions;
-      const dv = dsMap[r.date + "|" + normKey(r.name)];
+      const dv = lookupDirectSales(r.name, isAd, dsMapByDate[r.date] || {});
       if (dv != null) tDirect += dv;
     });
     const tRoas = tSpend > 0 ? tRoasW / tSpend : 0;
@@ -823,6 +832,7 @@ function renderDailyTable(data) {
       : "";
 
     // 헤더 행
+    const escapedName = g.name.replace(/'/g, "\\'");
     if (isAd) {
       html += `<tr class="daily-header-row">
         <td title="${g.name}"><b>${g.name}</b></td><td class="cell-sub">${g.parent}</td>
@@ -835,7 +845,10 @@ function renderDailyTable(data) {
         <td><span class="tag tag-${g.product.id}">${g.product.label}</span></td></tr>`;
     } else {
       html += `<tr class="daily-header-row">
-        <td title="${g.name}"><b>${g.name}</b></td>
+        <td title="${g.name}" style="cursor:pointer;" onclick="drillDown('${escapedName}')">
+          <span style="color:#58a6ff;text-decoration:underline dotted;"><b>${g.name}</b></span>
+          <span style="font-size:10px;color:#4e5564;margin-left:4px;">▶</span>
+        </td>
         <td><span class="tag tag-${g.product.id}">${g.product.label}</span></td>
         <td>${g.tCpa > 0 ? fmtKRW(g.tCpa) : "—"}</td><td><b>${fmtKRW(g.tSpend)}</b></td>
         <td class="${roasCls(g.tRoas)}"><b>${tRoasPct}</b></td><td>${g.tRevenue > 0 ? fmtKRW(g.tRevenue) : "—"}</td>
@@ -848,7 +861,7 @@ function renderDailyTable(data) {
     // 날짜별 서브 행
     g.rows.forEach(r => {
       const roasPct = r.roas > 0 ? (r.roas * 100).toFixed(0) + "%" : "—";
-      const dv = dsMap[r.date + "|" + normKey(r.name)] ?? null;
+      const dv = lookupDirectSales(r.name, isAd, dsMapByDate[r.date] || {});
       const dr = (dv != null && r.spend > 0) ? dv / r.spend : null;
       const dCell = hasDirect
         ? `<td class="${dr != null ? roasCls(dr) : ''}" style="${dr == null ? "color:#4e5564" : ""}">${dr != null ? (dr * 100).toFixed(0) + "%" : "—"}</td><td style="color:${dv != null ? "#f0883e" : "#4e5564"}">${dv != null ? fmtKRW(dv) : "—"}</td>`
