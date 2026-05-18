@@ -831,10 +831,13 @@ function render() {
   const avgRoas = tSpend > 0 ? tWRoas / tSpend : 0;
   const cpp     = tPurch > 0 ? tSpend / tPurch : 0;
 
-  // 직접ROAS 계산
+  // 직접ROAS 계산 — 일별 모드에서 같은 소재명이 N일치 반복되므로 유니크 이름만 처리
   const dsMap = buildDirectSalesMap(isAd);
+  const _seen = new Set();
   let tDirect = 0;
   data.forEach(c => {
+    if (_seen.has(c.name)) return;
+    _seen.add(c.name);
     const dv = lookupDirectSales(c.name, isAd, dsMap);
     if (dv != null) tDirect += dv;
   });
