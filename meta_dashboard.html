@@ -457,6 +457,7 @@ function checkPw() {
     sessionStorage.setItem(KEY, '1');
     document.getElementById('pwScreen').style.display = 'none';
     err.textContent = '';
+    renderTodayProductSales();
   } else {
     err.textContent = 'incorrect password';
     row.classList.add('error');
@@ -502,6 +503,7 @@ function goToBrandSelect() {
   document.getElementById("dashboard").style.display   = "none";
   document.getElementById("brandScreen").style.display = "flex";
   allData = [];
+  renderTodayProductSales();
 }
 
 function buildProductTabs(products) {
@@ -1511,7 +1513,18 @@ function renderTodayProductSales() {
   container.style.display = "block";
 }
 
-window.addEventListener('load', renderTodayProductSales);
+// 브랜드 선택 화면 표시 시 항상 호출
+function showBrandScreen() {
+  document.getElementById("dashboard").style.display   = "none";
+  document.getElementById("brandScreen").style.display = "flex";
+  allData = [];
+  renderTodayProductSales();
+}
+
+window.addEventListener('load', () => {
+  // 비밀번호 화면 통과 후 브랜드 화면 뜰 때 실행
+  setTimeout(renderTodayProductSales, 200);
+});
 
 </script>
 </body>
