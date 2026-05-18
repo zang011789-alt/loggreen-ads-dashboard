@@ -147,6 +147,23 @@ tbody tr:hover td { background: #1c2128; }
 .total-row td { background: #1c2128 !important; font-weight: 700; color: #f0f6fc; border-top: 1px solid #30363d; }
 .sort-asc::after  { content: ' ↑'; }
 .sort-desc::after { content: ' ↓'; }
+/* 소재명 검색 */
+.search-bar { margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+.search-wrap { position: relative; max-width: 360px; flex: 1; }
+.search-wrap input {
+  width: 100%; background: #161b22; border: 1px solid #21262d; border-radius: 8px;
+  color: #c9d1d9; font-size: 13px; padding: 7px 30px 7px 12px; outline: none;
+  transition: border-color 0.15s; font-family: inherit;
+}
+.search-wrap input:focus { border-color: #388bfd; }
+.search-wrap input::placeholder { color: #3d4451; }
+.search-clear {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: #6e7681; cursor: pointer;
+  font-size: 17px; line-height: 1; padding: 0; display: none;
+}
+.search-clear:hover { color: #c9d1d9; }
+.search-info { font-size: 12px; color: #6e7681; }
 .state-box { text-align: center; padding: 60px 20px; }
 .spinner { width: 26px; height: 26px; border: 2px solid #21262d; border-top-color: #7c3aed; border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 12px; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -401,6 +418,15 @@ select option { background: #161b22; color: #c9d1d9; }
     <button onclick="clearDrilldown()" style="margin-left:auto;background:#21262d;border:1px solid #30363d;color:#c9d1d9;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:12px;">✕ 전체보기</button>
   </div>
 
+  <!-- 소재명 검색 -->
+  <div class="search-bar">
+    <div class="search-wrap">
+      <input id="searchInput" type="text" placeholder="소재명 검색..." oninput="onSearch(this.value)">
+      <button class="search-clear" id="searchClear" onclick="clearSearch()">×</button>
+    </div>
+    <span class="search-info" id="searchInfo"></span>
+  </div>
+
   <!-- 테이블 -->
   <div class="table-section">
     <div class="table-header-row">
@@ -501,6 +527,7 @@ let c24DateFrom   = null;      // "YYYY-MM-DD" 또는 null (최신)
 let c24DateTo     = null;      // null이면 c24DateFrom과 동일 (단일 날짜)
 let c24View       = "campaigns"; // "campaigns" | "contents" | "channels"
 let c24SortKey    = "order_amount";
+let searchQuery   = "";
 let c24SortDir    = -1;
 
 // ── 날짜 초기값 ──
@@ -791,7 +818,43 @@ async function loadData() {
 function filtered() {
   let data = currentProd === "all" ? allData : allData.filter(c => c.product.id === currentProd);
   if (filterCampaign) data = data.filter(c => c.parent === filterCampaign);
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    if (currentLevel === "ad") {
+      // 소재별: 소재명 직접 필터
+      data = data.filter(c => c.name.toLowerCase().includes(q));
+    } else {
+      // 캠페인별: 검색어에 매칭되는 소재가 포함된 캠페인만
+      const adData = viewMode === "daily" ? (dailyAdCache || []) : (adCache || []);
+      const matchCamps = new Set(
+        adData
+          .filter(a => a.name.toLowerCase().includes(q) &&
+                       (currentProd === "all" || a.product.id === currentProd))
+          .map(a => a.parent)
+      );
+      data = data.filter(c => matchCamps.has(c.name));
+    }
+  }
+
   return data;
+}
+
+function onSearch(val) {
+  searchQuery = val.trim();
+  const clearBtn = document.getElementById("searchClear");
+  if (clearBtn) clearBtn.style.display = searchQuery ? "block" : "none";
+  render();
+}
+
+function clearSearch() {
+  searchQuery = "";
+  const inp = document.getElementById("searchInput");
+  const clearBtn = document.getElementById("searchClear");
+  if (inp) inp.value = "";
+  if (clearBtn) clearBtn.style.display = "none";
+  document.getElementById("searchInfo").textContent = "";
+  render();
 }
 
 function drillDown(campaignName) {
