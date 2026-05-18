@@ -314,6 +314,9 @@ select option { background: #161b22; color: #c9d1d9; }
   <!-- 오늘 제품별 직접매출 -->
   <div id="todayProductSales" style="width:100%;max-width:860px;display:none"></div>
 
+  <!-- 일별 직접매출 추이 차트 -->
+  <div id="dailyTrendCharts" style="width:100%;max-width:860px;display:none"></div>
+
   <!-- 브랜드 선택 -->
   <div style="text-align:center">
     <div class="brand-screen-title">브랜드를 선택하세요</div>
@@ -531,6 +534,7 @@ function checkPw() {
     document.getElementById('pwScreen').style.display = 'none';
     err.textContent = '';
     renderTodayProductSales();
+    renderDailyTrendCharts();
   } else {
     err.textContent = 'incorrect password';
     row.classList.add('error');
@@ -577,6 +581,7 @@ function goToBrandSelect() {
   document.getElementById("brandScreen").style.display = "flex";
   allData = [];
   renderTodayProductSales();
+  renderDailyTrendCharts();
 }
 
 function buildProductTabs(products) {
@@ -1615,17 +1620,129 @@ function renderTodayProductSales() {
   container.style.display = "block";
 }
 
+function renderDailyTrendCharts() {
+  const container = document.getElementById("dailyTrendCharts");
+  if (!container) return;
+  const h = window.CAFE24_HISTORY;
+  if (!h) { container.style.display = "none"; return; }
+
+  const TYPE_COLORS = {'노즈픽션':'#34d399','키즈픽션':'#38bdf8','템퍼픽션':'#fb923c','아토픽션':'#f87171','노즈스파':'#86efac','노즈브리즈':'#a3e635','슬로우픽션':'#e879f9','키로메디':'#fbbf24','바이오턴':'#60a5fa','디오스톡':'#a78bfa','기타':'#6e7681'};
+  const BRANDS_CFG = [
+    { id: 'ridermune', label: '리더뮨', color: '#4ade80' },
+    { id: 'outcoma',   label: '아웃코마', color: '#a78bfa' }
+  ];
+
+  // 최근 14일
+  const dates = Array.from({length: 14}, (_, i) =>
+    new Date(Date.now() - (13 - i) * 86400000).toISOString().slice(0, 10)
+  );
+
+  let outerHtml = '';
+  let hasAny = false;
+
+  BRANDS_CFG.forEach(bc => {
+    const productMap = {};
+    dates.forEach((dateStr, di) => {
+      const bd = h[dateStr]?.[bc.id];
+      if (!bd?.products) return;
+      bd.products.forEach(p => {
+        const amt = parseInt(p.order_amount || 0);
+        if (!amt) return;
+        const ptype = c24ProductType(p.product_name);
+        if (!productMap[ptype]) productMap[ptype] = new Array(dates.length).fill(0);
+        productMap[ptype][di] += amt;
+      });
+    });
+
+    const series = Object.entries(productMap)
+      .filter(([, v]) => v.some(x => x > 0))
+      .sort((a, b) => b[1].reduce((s, x) => s + x, 0) - a[1].reduce((s, x) => s + x, 0));
+
+    if (!series.length) return;
+    hasAny = true;
+
+    const allVals = series.flatMap(([, v]) => v);
+    const maxRaw = Math.max(...allVals, 1);
+    // y축 최대값을 깔끔하게 올림
+    const mag = Math.pow(10, Math.floor(Math.log10(maxRaw)));
+    const niceMax = Math.ceil(maxRaw / mag) * mag;
+
+    const W = 800, H = 185;
+    const PL = 60, PR = 16, PT = 14, PB = 28;
+    const cW = W - PL - PR, cH = H - PT - PB;
+    const n = dates.length;
+    const xP = i => PL + (i / (n - 1)) * cW;
+    const yP = v => PT + cH * (1 - v / niceMax);
+
+    // 가로 격자선 + y축 레이블
+    const grid = [0, 0.25, 0.5, 0.75, 1].map(r => {
+      const y = (PT + cH * (1 - r)).toFixed(1);
+      const v = Math.round(r * niceMax);
+      const lbl = v >= 100000000 ? (v/100000000).toFixed(1)+'억'
+                : v >= 10000    ? Math.round(v/10000)+'만'
+                : v.toLocaleString();
+      return `<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#21262d" stroke-width="1"/>
+        <text x="${PL-6}" y="${(parseFloat(y)+4).toFixed(1)}" text-anchor="end" font-size="10" fill="#4e5564">${lbl}</text>`;
+    }).join('');
+
+    // x축 레이블 (홀수 인덱스 + 마지막)
+    const xLbls = dates.map((d, i) => {
+      if (i % 2 !== 0 && i !== n - 1) return '';
+      return `<text x="${xP(i).toFixed(1)}" y="${H-5}" text-anchor="middle" font-size="10" fill="#4e5564">${d.slice(5)}</text>`;
+    }).join('');
+
+    // 시리즈 라인 + 점
+    const seriesSvg = series.map(([ptype, vals]) => {
+      const color = TYPE_COLORS[ptype] || '#6e7681';
+      const pts = vals.map((v, i) => `${xP(i).toFixed(1)},${yP(v).toFixed(1)}`).join(' ');
+      const dots = vals.map((v, i) => v > 0
+        ? `<circle cx="${xP(i).toFixed(1)}" cy="${yP(v).toFixed(1)}" r="3" fill="${color}" stroke="#161b22" stroke-width="1.5"/>`
+        : ''
+      ).join('');
+      return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>${dots}`;
+    }).join('');
+
+    // 범례
+    const legend = series.map(([ptype]) => {
+      const color = TYPE_COLORS[ptype] || '#6e7681';
+      return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#c9d1d9;white-space:nowrap">
+        <span style="width:14px;height:2px;background:${color};display:inline-block;border-radius:1px;flex-shrink:0"></span>${ptype}</span>`;
+    }).join('');
+
+    outerHtml += `<div style="margin-bottom:20px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:700;letter-spacing:0.08em;color:${bc.color};text-transform:uppercase;flex-shrink:0">${bc.label}</span>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">${legend}</div>
+      </div>
+      <div style="background:#161b22;border:1px solid #21262d;border-radius:10px;padding:10px 12px;overflow-x:auto">
+        <svg viewBox="0 0 ${W} ${H}" width="100%" style="min-width:300px;display:block">
+          ${grid}${xLbls}${seriesSvg}
+        </svg>
+      </div>
+    </div>`;
+  });
+
+  if (!hasAny) { container.style.display = "none"; return; }
+
+  container.innerHTML = `<div style="margin-bottom:14px;display:flex;align-items:center;gap:8px">
+    <span style="font-size:11px;color:#6e7681;letter-spacing:0.08em;text-transform:uppercase;font-weight:600">일별 직접매출 추이</span>
+    <span style="font-size:11px;color:#3a4050">최근 14일</span>
+  </div>${outerHtml}`;
+  container.style.display = "block";
+}
+
 // 브랜드 선택 화면 표시 시 항상 호출
 function showBrandScreen() {
   document.getElementById("dashboard").style.display   = "none";
   document.getElementById("brandScreen").style.display = "flex";
   allData = [];
   renderTodayProductSales();
+  renderDailyTrendCharts();
 }
 
 window.addEventListener('load', () => {
   // 비밀번호 화면 통과 후 브랜드 화면 뜰 때 실행
-  setTimeout(renderTodayProductSales, 200);
+  setTimeout(() => { renderTodayProductSales(); renderDailyTrendCharts(); }, 200);
 });
 
 </script>
