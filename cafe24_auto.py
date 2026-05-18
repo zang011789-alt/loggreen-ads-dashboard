@@ -73,8 +73,8 @@ async def fetch_data(session, token, endpoint, params):
         return await resp.json()
 
 async def collect_brand(account, yesterday_str, today_str):
-    """브랜드별 데이터 수집"""
-    log.info(f"[{account['name']}] 수집 시작 - 날짜: {yesterday_str}")
+    """브랜드별 데이터 수집 (어제 확정 + 오늘 실시간)"""
+    log.info(f"[{account['name']}] 수집 시작 - 어제: {yesterday_str}, 오늘: {today_str}")
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
@@ -103,20 +103,16 @@ async def collect_brand(account, yesterday_str, today_str):
     log.info(f"[{account['name']}] 토큰 발급 완료")
 
     # API 호출
-    # 기간: 어제 하루 (어제~어제)
-    params_yesterday = {
+    base_params = {
         "device_type": "total",
-        "start_date": yesterday_str,
-        "end_date": yesterday_str,
         "sort": "order_amount",
         "order": "desc",
         "offset": 0,
         "limit": 200,
         "conversion_timeframe": "2h",
     }
-    # 이번주 누적 (7일)
-    week_ago = (date.today() - timedelta(days=7)).strftime("%Y-%m-%d")
-    params_week = {**params_yesterday, "start_date": week_ago, "end_date": yesterday_str}
+    params_yesterday = {**base_params, "start_date": yesterday_str, "end_date": yesterday_str}
+    params_today     = {**base_params, "start_date": today_str,     "end_date": today_str}
 
     result = {
         "brand": account["name"],
@@ -126,38 +122,43 @@ async def collect_brand(account, yesterday_str, today_str):
     }
 
     async with aiohttp.ClientSession() as session:
-        # 캠페인별 (어제)
+        # ── 어제 확정 데이터 ──
         data = await fetch_data(session, token, "/ca2/adsources/campaigns", params_yesterday)
         if data:
             result["campaigns_yesterday"] = data.get("campaigns", [])
-            log.info(f"[{account['name']}] campaigns: {len(result['campaigns_yesterday'])}개")
+            log.info(f"[{account['name']}] campaigns(어제): {len(result['campaigns_yesterday'])}개")
 
-        # 소재별 = utm_keyword(term) - 전체 소재명 포함 (어제)
         data = await fetch_data(session, token, "/ca2/adsources/terms", params_yesterday)
         if data:
             result["contents_yesterday"] = data.get("terms", [])
-            log.info(f"[{account['name']}] terms(소재): {len(result['contents_yesterday'])}개")
+            log.info(f"[{account['name']}] terms(어제): {len(result['contents_yesterday'])}개")
 
-        # 채널별 (어제)
         data = await fetch_data(session, token, "/ca2/adsources/channels", params_yesterday)
         if data:
             result["channels_yesterday"] = data.get("channels", [])
-            log.info(f"[{account['name']}] channels: {len(result['channels_yesterday'])}개")
 
-        # 매출 요약 (어제)
         data = await fetch_data(session, token, "/ca2/sales/highlights", params_yesterday)
         if data:
             result["sales_yesterday"] = data.get("highlights", [])
 
-        # 캠페인별 (이번주)
-        data = await fetch_data(session, token, "/ca2/adsources/campaigns", params_week)
+        # ── 오늘 실시간 데이터 ──
+        data = await fetch_data(session, token, "/ca2/adsources/campaigns", params_today)
         if data:
-            result["campaigns_week"] = data.get("campaigns", [])
+            result["campaigns_today"] = data.get("campaigns", [])
+            log.info(f"[{account['name']}] campaigns(오늘): {len(result['campaigns_today'])}개")
 
-        # 소재별 = utm_keyword(term) - 전체 소재명 포함 (이번주)
-        data = await fetch_data(session, token, "/ca2/adsources/terms", params_week)
+        data = await fetch_data(session, token, "/ca2/adsources/terms", params_today)
         if data:
-            result["contents_week"] = data.get("terms", [])
+            result["contents_today"] = data.get("terms", [])
+            log.info(f"[{account['name']}] terms(오늘): {len(result['contents_today'])}개")
+
+        data = await fetch_data(session, token, "/ca2/adsources/channels", params_today)
+        if data:
+            result["channels_today"] = data.get("channels", [])
+
+        data = await fetch_data(session, token, "/ca2/sales/highlights", params_today)
+        if data:
+            result["sales_today"] = data.get("highlights", [])
 
     return result
 
@@ -190,7 +191,7 @@ async def main():
     else:
         history = {}
 
-    # 어제 날짜 키로 저장 (campaigns/contents/channels만, suffix 없이 단순화)
+    # 어제 확정 데이터 저장
     history[yesterday_str] = {}
     for brand_name, result in all_results.items():
         history[yesterday_str][brand_name] = {
@@ -199,6 +200,17 @@ async def main():
             "channels":  result.get("channels_yesterday", []),
             "sales":     result.get("sales_yesterday", []),
         }
+
+    # 오늘 실시간 데이터 저장 (매 실행마다 덮어씌움)
+    history[today_str] = {}
+    for brand_name, result in all_results.items():
+        history[today_str][brand_name] = {
+            "campaigns": result.get("campaigns_today", []),
+            "contents":  result.get("contents_today", []),
+            "channels":  result.get("channels_today", []),
+            "sales":     result.get("sales_today", []),
+        }
+    log.info(f"오늘({today_str}) 실시간 데이터 저장 완료")
 
     # 90일 초과 항목 제거
     cutoff = (today - timedelta(days=MAX_DAYS)).strftime("%Y-%m-%d")
