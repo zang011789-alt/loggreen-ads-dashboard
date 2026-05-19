@@ -1,26 +1,26 @@
 window.TIKTOK_HISTORY = {
   "2026-05-19": {
-    "scraped_at": "2026-05-19 17:00",
+    "scraped_at": "2026-05-19 18:18",
     "summary": {
-      "spend": 454043,
-      "revenue": 556900,
-      "roas": 1.23
+      "spend": 504029,
+      "revenue": 597800,
+      "roas": 1.19
     },
     "campaigns": [
       {
         "name": "tk_do_spc_23(틱톡)",
         "status": "active",
         "budget": 700000,
-        "cpa": 90809,
-        "spend": 454043,
-        "revenue": 556900,
-        "roas": 1.23,
-        "cpc": 2112,
-        "ctr": 3.46,
-        "clicks": 215,
-        "impressions": 6212,
-        "cpm": 73091,
-        "conversions": 5
+        "cpa": 84005,
+        "spend": 504029,
+        "revenue": 597800,
+        "roas": 1.19,
+        "cpc": 2127,
+        "ctr": 3.47,
+        "clicks": 237,
+        "impressions": 6830,
+        "cpm": 73796,
+        "conversions": 22
       },
       {
         "name": "tk_do_spc_21(틱톡)",
@@ -35,7 +35,7 @@ window.TIKTOK_HISTORY = {
         "clicks": 0,
         "impressions": 0,
         "cpm": 0,
-        "conversions": 0
+        "conversions": 20
       },
       {
         "name": "tk_do_spc_19",
@@ -50,7 +50,7 @@ window.TIKTOK_HISTORY = {
         "clicks": 0,
         "impressions": 0,
         "cpm": 0,
-        "conversions": 0
+        "conversions": 18
       },
       {
         "name": "tk_do_spc_17",
@@ -65,7 +65,7 @@ window.TIKTOK_HISTORY = {
         "clicks": 0,
         "impressions": 0,
         "cpm": 0,
-        "conversions": 0
+        "conversions": 16
       },
       {
         "name": "tk_do_spc_15",
@@ -80,7 +80,7 @@ window.TIKTOK_HISTORY = {
         "clicks": 0,
         "impressions": 0,
         "cpm": 0,
-        "conversions": 0
+        "conversions": 14
       },
       {
         "name": "tk_do_spc_13",
@@ -95,7 +95,7 @@ window.TIKTOK_HISTORY = {
         "clicks": 0,
         "impressions": 0,
         "cpm": 0,
-        "conversions": 0
+        "conversions": 12
       },
       {
         "name": "tk_do_spc_11(control)",
@@ -110,7 +110,7 @@ window.TIKTOK_HISTORY = {
         "clicks": 0,
         "impressions": 0,
         "cpm": 0,
-        "conversions": 0
+        "conversions": 10
       },
       {
         "name": "TK_DO_SPC_09",
@@ -125,7 +125,7 @@ window.TIKTOK_HISTORY = {
         "clicks": 0,
         "impressions": 0,
         "cpm": 0,
-        "conversions": 0
+        "conversions": 8
       },
       {
         "name": "TK_DO_SPC_07_카탈로그",
@@ -140,7 +140,7 @@ window.TIKTOK_HISTORY = {
         "clicks": 0,
         "impressions": 0,
         "cpm": 0,
-        "conversions": 0
+        "conversions": 6
       },
       {
         "name": "TK_DO_SPC_05_ITR",
@@ -155,7 +155,269 @@ window.TIKTOK_HISTORY = {
         "clicks": 0,
         "impressions": 0,
         "cpm": 0,
-        "conversions": 0
+        "conversions": 4
+      }
+    ],
+    "ads": [
+      {
+        "name": "023_260519_D_악성댓글_AN",
+        "campaign": "tk_do_spc_23(틱톡)",
+        "status": "active",
+        "cpa": 0,
+        "spend": 3382,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 1691,
+        "ctr": 3.85,
+        "clicks": 2,
+        "impressions": 52
+      },
+      {
+        "name": "023_260519_D_풍선V라인_AN",
+        "campaign": "tk_do_spc_23(틱톡)",
+        "status": "active",
+        "cpa": 0,
+        "spend": 1259,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 0,
+        "ctr": 0.0,
+        "clicks": 0,
+        "impressions": 13
+      },
+      {
+        "name": "023_260519_nsw_피지짜_AN",
+        "campaign": "tk_do_spc_23(틱톡)",
+        "status": "active",
+        "cpa": 0,
+        "spend": 5863,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 0,
+        "ctr": 0.0,
+        "clicks": 0,
+        "impressions": 76
+      },
+      {
+        "name": "023_260519_D_응급실_AN",
+        "campaign": "tk_do_spc_23(틱톡)",
+        "status": "active",
+        "cpa": 0,
+        "spend": 4036,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 1345,
+        "ctr": 5.45,
+        "clicks": 3,
+        "impressions": 55
+      },
+      {
+        "name": "023_260519_ypd_마사지2000번_T",
+        "campaign": "tk_do_spc_23(틱톡)",
+        "status": "active",
+        "cpa": 0,
+        "spend": 12755,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 1822,
+        "ctr": 2.92,
+        "clicks": 7,
+        "impressions": 240
+      },
+      {
+        "name": "021_260515_D_보정졸업_AI",
+        "campaign": "tk_do_spc_21(틱톡)",
+        "status": "paused",
+        "cpa": 0,
+        "spend": 0,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 0,
+        "ctr": 0.0,
+        "clicks": 0,
+        "impressions": 0
+      },
+      {
+        "name": "021_260515_D_20토크쇼다이어트_AI",
+        "campaign": "tk_do_spc_21(틱톡)",
+        "status": "paused",
+        "cpa": 0,
+        "spend": 0,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 0,
+        "ctr": 0.0,
+        "clicks": 0,
+        "impressions": 0
+      },
+      {
+        "name": "021_260515_pdz_랜선밥친구2_AI",
+        "campaign": "tk_do_spc_21(틱톡)",
+        "status": "paused",
+        "cpa": 0,
+        "spend": 0,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 0,
+        "ctr": 0.0,
+        "clicks": 0,
+        "impressions": 0
+      },
+      {
+        "name": "023_260515_qt_프랑스정복_T",
+        "campaign": "tk_do_spc_23(틱톡)",
+        "status": "active",
+        "cpa": 0,
+        "spend": 221776,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 3080,
+        "ctr": 2.82,
+        "clicks": 72,
+        "impressions": 2557
+      },
+      {
+        "name": "023_260515_hy_판매중지_H",
+        "campaign": "tk_do_spc_23(틱톡)",
+        "status": "paused",
+        "cpa": 0,
+        "spend": 42725,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 2249,
+        "ctr": 4.07,
+        "clicks": 19,
+        "impressions": 467
+      },
+      {
+        "name": "023_260515_hy_시숤3번효능_H",
+        "campaign": "tk_do_spc_23(틱톡)",
+        "status": "paused",
+        "cpa": 0,
+        "spend": 9249,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 1542,
+        "ctr": 4.96,
+        "clicks": 6,
+        "impressions": 121
+      },
+      {
+        "name": "023_260513_qt_심상치않다_AN",
+        "campaign": "tk_do_spc_23(틱톡)",
+        "status": "paused",
+        "cpa": 0,
+        "spend": 0,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 0,
+        "ctr": 0.0,
+        "clicks": 0,
+        "impressions": 0
+      },
+      {
+        "name": "023_260513_qt_떡턱되돌려_AN",
+        "campaign": "tk_do_spc_23(틱톡)",
+        "status": "paused",
+        "cpa": 0,
+        "spend": 0,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 0,
+        "ctr": 0.0,
+        "clicks": 0,
+        "impressions": 0
+      },
+      {
+        "name": "023_260513_qt_프랑스여자_AN",
+        "campaign": "tk_do_spc_23(틱톡)",
+        "status": "paused",
+        "cpa": 0,
+        "spend": 6284,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 2095,
+        "ctr": 2.65,
+        "clicks": 3,
+        "impressions": 113
+      },
+      {
+        "name": "023_260513_ypd_울퉁불퉁얼굴_T",
+        "campaign": "tk_do_spc_23(틱톡)",
+        "status": "paused",
+        "cpa": 0,
+        "spend": 0,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 0,
+        "ctr": 0.0,
+        "clicks": 0,
+        "impressions": 0
+      },
+      {
+        "name": "023_260513_on_피지짜_T",
+        "campaign": "tk_do_spc_23(틱톡)",
+        "status": "paused",
+        "cpa": 32847,
+        "spend": 197084,
+        "revenue": 597800,
+        "roas": 3.03,
+        "cpc": 1577,
+        "ctr": 3.98,
+        "clicks": 125,
+        "impressions": 3143
+      },
+      {
+        "name": "022_260511_on_배민vip_AI",
+        "campaign": "tk_do_spc_22(틱톡)",
+        "status": "paused",
+        "cpa": 0,
+        "spend": 0,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 0,
+        "ctr": 0.0,
+        "clicks": 0,
+        "impressions": 0
+      },
+      {
+        "name": "022_260511_on_할인해주세요_T",
+        "campaign": "tk_do_spc_22(틱톡)",
+        "status": "paused",
+        "cpa": 0,
+        "spend": 0,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 0,
+        "ctr": 0.0,
+        "clicks": 0,
+        "impressions": 0
+      },
+      {
+        "name": "022_260511_pdz_나를조심해_AN",
+        "campaign": "tk_do_spc_22(틱톡)",
+        "status": "paused",
+        "cpa": 0,
+        "spend": 0,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 0,
+        "ctr": 0.0,
+        "clicks": 0,
+        "impressions": 0
+      },
+      {
+        "name": "022_260511_nsw_정부금지_AN",
+        "campaign": "tk_do_spc_22(틱톡)",
+        "status": "paused",
+        "cpa": 0,
+        "spend": 0,
+        "revenue": 0,
+        "roas": 0.0,
+        "cpc": 0,
+        "ctr": 0.0,
+        "clicks": 0,
+        "impressions": 0
       }
     ]
   },
