@@ -24,7 +24,7 @@ BRANDS = {
     "ridermune": {
         "adv_id":   "7369127741796630529",
         "label":    "리더뮨",
-        "camp_pat": r'tk_',
+        "camp_pat": r'tk_(kd|tp|yb|np|ato)_',
     },
 }
 
@@ -89,8 +89,12 @@ def scrape_campaigns(page, camp_pat):
                 i += 1; continue
 
             offset = 2
-            nxt = lines[i+offset] if i+offset < len(lines) else ''
-            if any(x in nxt.lower() for x in ['paused','delivering','deleted','not run']):
+            # Budget 라인(숫자 포함)이 나올 때까지 서브상태 줄 건너뜀
+            # 예: "Campaign paused", "Learning phase", "Not delivering" 등
+            while i+offset < len(lines) and offset < 6:
+                nxt = lines[i+offset]
+                if re.search(r'[\d,]+', nxt) or 'unlimited' in nxt.lower():
+                    break
                 offset += 1
 
             def gl(n):
