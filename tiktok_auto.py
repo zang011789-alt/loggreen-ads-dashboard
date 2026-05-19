@@ -39,6 +39,76 @@ def parse_num(s):
     try: return int(re.sub(r'[^0-9]', '', s))
     except: return 0
 
+def click_ad_tab(page):
+    try:
+        page.keyboard.press("Alt+3")
+        page.wait_for_timeout(2000)
+        return True
+    except:
+        return False
+
+def scrape_ads(page):
+    page.wait_for_timeout(3000)
+    for _ in range(20):
+        page.evaluate("window.scrollBy(0, 400)")
+        page.wait_for_timeout(200)
+    page.evaluate("window.scrollTo(0, 0)")
+    page.wait_for_timeout(1000)
+
+    text  = page.evaluate("document.body.innerText")
+    lines = [l.strip() for l in text.split('\n') if l.strip()]
+
+    ads = []
+    i   = 0
+    while i < len(lines):
+        line = lines[i]
+        if not re.match(r'^\d{3}_\d{6}_', line):
+            i += 1; continue
+        try:
+            name       = line
+            status_raw = lines[i+1] if i+1 < len(lines) else ''
+            if status_raw not in ('Active', 'Paused', 'Deleted', 'Not delivering'):
+                i += 1; continue
+
+            # campaign name (tk_ pattern)을 최대 8줄 내에서 찾음
+            camp_name = ''
+            camp_offset = -1
+            for k in range(2, 10):
+                idx = i + k
+                if idx >= len(lines): break
+                if re.search(r'(tk_|TK_)', lines[idx], re.IGNORECASE):
+                    camp_name   = lines[idx]
+                    camp_offset = k
+                    break
+
+            if camp_offset < 0:
+                i += 1; continue
+
+            def gv(n):
+                idx = i + camp_offset + 1 + n
+                return lines[idx] if idx < len(lines) else '0'
+
+            ad = {
+                'name':        name,
+                'campaign':    camp_name,
+                'status':      'active' if status_raw == 'Active' else 'paused',
+                'cpa':         parse_krw(gv(0)),
+                'spend':       parse_krw(gv(1)),
+                'revenue':     parse_krw(gv(2)),
+                'roas':        parse_float(gv(3)),
+                'cpc':         parse_krw(gv(4)),
+                'ctr':         parse_pct(gv(5)),
+                'clicks':      parse_num(gv(9)),
+                'impressions': parse_num(gv(10)),
+            }
+            ads.append(ad)
+            i += camp_offset + 12
+            continue
+        except:
+            pass
+        i += 1
+    return ads
+
 def apply_custom_columns(page):
     try:
         page.wait_for_timeout(2000)
@@ -125,10 +195,21 @@ def collect_day(page, target_date_str):
 
     print(f"  [{target_date_str}] 캠페인 {len(campaigns)}개(활성:{len(active)}) | 소진:{total_spend:,} | 매출:{total_revenue:,} | ROAS:{total_roas}", flush=True)
 
+    # Ad 탭으로 전환해서 소재별 수집 (URL 이동 X, Alt+3으로 탭 전환)
+    ads = []
+    try:
+        page.keyboard.press("Alt+3")
+        page.wait_for_timeout(2000)
+        ads = scrape_ads(page)
+        print(f"  [{target_date_str}] 소재 {len(ads)}개", flush=True)
+    except Exception as e:
+        print(f"  [{target_date_str}] 소재 수집 실패(무시): {e}", flush=True)
+
     return {
         "scraped_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "summary": {"spend": total_spend, "revenue": total_revenue, "roas": total_roas},
         "campaigns": campaigns,
+        "ads": ads,
     }
 
 def load_history():
