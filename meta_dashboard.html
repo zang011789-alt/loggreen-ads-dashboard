@@ -522,6 +522,7 @@ select option { background: #161b22; color: #c9d1d9; }
         <button class="tab-btn"        data-ttlevel="ad"       onclick="setTtLevel(this)">소재별</button>
       </div>
     </div>
+    <div class="ctrl-row" id="ttProdRow" style="display:none"></div>
   </div>
 
   <!-- KPI -->
@@ -1369,6 +1370,7 @@ function setSource(src) {
     const { start, end } = getTtDateRange();
     document.getElementById("ttStartDate").value = start;
     document.getElementById("ttEndDate").value   = end;
+    buildTtProdTabs();
     renderTikTok();
   }
 }
@@ -1962,10 +1964,22 @@ window.addEventListener('load', () => {
 let ttPreset      = "last_7d";
 let ttViewMode    = "summary";
 let ttLevel       = "campaign";  // "campaign" | "ad"
+let ttProd        = "all";       // 제품 필터
 let ttCustomStart = null;
 let ttCustomEnd   = null;
 let ttSortKey     = "spend";
 let ttSortDir     = -1;
+
+// 구형식(h[date].scraped_at) → 신형식(h[date][brand]) 폴백
+function getTtBrandData(date) {
+  const h = window.TIKTOK_HISTORY;
+  if (!h) return null;
+  const day = h[date];
+  if (!day) return null;
+  if (currentBrand && day[currentBrand]) return day[currentBrand];
+  if (day.scraped_at) return day;  // 구형식 호환
+  return null;
+}
 
 function getTtDateRange() {
   const today = new Date();
@@ -2002,6 +2016,36 @@ function setTtLevel(btn) {
   renderTikTok();
 }
 
+function setTtProd(btn) {
+  ttProd = btn.dataset.ttprod;
+  document.querySelectorAll("#ttProdTabs .tab-btn").forEach(b => b.classList.toggle("active", b === btn));
+  renderTikTok();
+}
+
+function buildTtProdTabs() {
+  const row = document.getElementById("ttProdRow");
+  if (!currentBrand || !BRANDS[currentBrand]) { row.style.display = "none"; return; }
+  const prods = BRANDS[currentBrand].products || [];
+  if (prods.length <= 1) { row.style.display = "none"; return; }
+  ttProd = "all";
+  let html = `<div class="tab-group prod-group" id="ttProdTabs">
+    <button class="tab-btn active" data-ttprod="all" onclick="setTtProd(this)">전체</button>`;
+  prods.forEach(p => {
+    html += `<button class="tab-btn" data-ttprod="${p.id}" onclick="setTtProd(this)">${p.label}</button>`;
+  });
+  html += `</div>`;
+  row.innerHTML = html;
+  row.style.display = "";
+}
+
+function ttProdFilter(name) {
+  if (ttProd === "all") return true;
+  if (!currentBrand || !BRANDS[currentBrand]) return true;
+  const prod = (BRANDS[currentBrand].products || []).find(p => p.id === ttProd);
+  if (!prod) return true;
+  return prod.re.test(name);
+}
+
 function ttCustomDateChanged() {
   document.querySelectorAll(".tt-date-group .tab-btn").forEach(b => b.classList.remove("active"));
   ttCustomStart = null; ttCustomEnd = null;
@@ -2020,7 +2064,9 @@ function aggregateTt(start, end) {
   if (!h) return [];
   const map = {};
   Object.keys(h).filter(d => d >= start && d <= end).sort().forEach(date => {
-    (h[date].campaigns || []).forEach(c => {
+    const bd = getTtBrandData(date);
+    if (!bd) return;
+    (bd.campaigns || []).filter(c => ttProdFilter(c.name)).forEach(c => {
       if (!map[c.name]) map[c.name] = { name: c.name, status: c.status, spend: 0, revenue: 0, conversions: 0, clicks: 0, impressions: 0 };
       const m = map[c.name];
       m.spend += c.spend; m.revenue += c.revenue;
@@ -2051,7 +2097,9 @@ function aggregateTtAds(start, end) {
   if (!h) return [];
   const map = {};
   Object.keys(h).filter(d => d >= start && d <= end).sort().forEach(date => {
-    (h[date].ads || []).forEach(a => {
+    const bd = getTtBrandData(date);
+    if (!bd) return;
+    (bd.ads || []).filter(a => ttProdFilter(a.campaign || a.name)).forEach(a => {
       if (!map[a.name]) map[a.name] = { name: a.name, campaign: a.campaign, status: a.status, spend: 0, revenue: 0, clicks: 0, impressions: 0 };
       const m = map[a.name];
       m.spend += a.spend; m.revenue += a.revenue;
@@ -2076,10 +2124,10 @@ function normTtKey(name) {
 
 function buildTtDsMap(start, end) {
   const h = window.CAFE24_HISTORY;
-  if (!h) return {};
+  if (!h || !currentBrand) return {};
   const map = {};
   Object.keys(h).filter(d => d >= start && d <= end).forEach(date => {
-    const camps = h[date]?.outcoma?.campaigns || [];
+    const camps = h[date]?.[currentBrand]?.campaigns || [];
     camps.forEach(c => {
       const k = (c.campaign || '').toLowerCase();
       if (!k.includes('tk')) return;
@@ -2091,10 +2139,10 @@ function buildTtDsMap(start, end) {
 
 function buildTtDsMapByDate(start, end) {
   const h = window.CAFE24_HISTORY;
-  if (!h) return {};
+  if (!h || !currentBrand) return {};
   const result = {};
   Object.keys(h).filter(d => d >= start && d <= end).forEach(date => {
-    const camps = h[date]?.outcoma?.campaigns || [];
+    const camps = h[date]?.[currentBrand]?.campaigns || [];
     if (!result[date]) result[date] = {};
     camps.forEach(c => {
       const k = (c.campaign || '').toLowerCase();
@@ -2119,10 +2167,10 @@ function lookupTtDirect(ttName, dsMap) {
 // ── 틱톡 소재별 직접값 (카페24 outcoma.contents, term 기반) ──
 function buildTtAdDsMap(start, end) {
   const h = window.CAFE24_HISTORY;
-  if (!h) return {};
+  if (!h || !currentBrand) return {};
   const map = {};
   Object.keys(h).filter(d => d >= start && d <= end).forEach(date => {
-    (h[date]?.outcoma?.contents || []).forEach(c => {
+    (h[date]?.[currentBrand]?.contents || []).forEach(c => {
       const k = normKey(c.term || '');
       if (!k) return;
       map[k] = (map[k] || 0) + parseInt(c.order_amount || 0);
@@ -2133,11 +2181,11 @@ function buildTtAdDsMap(start, end) {
 
 function buildTtAdDsMapByDate(start, end) {
   const h = window.CAFE24_HISTORY;
-  if (!h) return {};
+  if (!h || !currentBrand) return {};
   const result = {};
   Object.keys(h).filter(d => d >= start && d <= end).forEach(date => {
     if (!result[date]) result[date] = {};
-    (h[date]?.outcoma?.contents || []).forEach(c => {
+    (h[date]?.[currentBrand]?.contents || []).forEach(c => {
       const k = normKey(c.term || '');
       if (!k) return;
       result[date][k] = (result[date][k] || 0) + parseInt(c.order_amount || 0);
@@ -2153,10 +2201,10 @@ function lookupTtAdDirect(adName, dsMap) {
 
 function hasTtDirect(start, end) {
   const h = window.CAFE24_HISTORY;
-  if (!h) return false;
+  if (!h || !currentBrand) return false;
   return Object.keys(h).some(d => {
     if (d < start || d > end) return false;
-    return (h[d]?.outcoma?.campaigns || []).some(c => (c.campaign||'').toLowerCase().includes('tk'));
+    return (h[d]?.[currentBrand]?.campaigns || []).some(c => (c.campaign||'').toLowerCase().includes('tk'));
   });
 }
 
@@ -2262,7 +2310,9 @@ function renderTtDailyTable(start, end, dsMapTotal) {
 
   const groups = {};
   Object.keys(h).filter(d => d >= start && d <= end).sort().forEach(date => {
-    (h[date].campaigns || []).filter(c => c.spend > 0).forEach(c => {
+    const bd = getTtBrandData(date);
+    if (!bd) return;
+    (bd.campaigns || []).filter(c => c.spend > 0 && ttProdFilter(c.name)).forEach(c => {
       if (!groups[c.name]) groups[c.name] = { name: c.name, status: c.status, rows: [] };
       groups[c.name].rows.push({ date, ...c });
       groups[c.name].status = c.status;
@@ -2382,7 +2432,9 @@ function renderTtAdDailyTable(start, end, dsMap) {
 
   const groups = {};
   Object.keys(h).filter(d => d >= start && d <= end).sort().forEach(date => {
-    (h[date].ads || []).filter(a => a.spend > 0).forEach(a => {
+    const bd = getTtBrandData(date);
+    if (!bd) return;
+    (bd.ads || []).filter(a => a.spend > 0 && ttProdFilter(a.campaign || a.name)).forEach(a => {
       if (!groups[a.name]) groups[a.name] = { name: a.name, campaign: a.campaign, status: a.status, rows: [] };
       groups[a.name].rows.push({ date, ...a });
       groups[a.name].status   = a.status;
