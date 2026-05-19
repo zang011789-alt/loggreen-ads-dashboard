@@ -1,25 +1,25 @@
 window.TIKTOK_HISTORY = {
   "2026-05-19": {
-    "scraped_at": "2026-05-19 16:46",
+    "scraped_at": "2026-05-19 17:00",
     "summary": {
-      "spend": 442167,
+      "spend": 454043,
       "revenue": 556900,
-      "roas": 1.26
+      "roas": 1.23
     },
     "campaigns": [
       {
         "name": "tk_do_spc_23(틱톡)",
         "status": "active",
         "budget": 700000,
-        "cpa": 88433,
-        "spend": 442167,
+        "cpa": 90809,
+        "spend": 454043,
         "revenue": 556900,
-        "roas": 1.26,
-        "cpc": 2116,
-        "ctr": 3.44,
-        "clicks": 209,
-        "impressions": 6083,
-        "cpm": 72689,
+        "roas": 1.23,
+        "cpc": 2112,
+        "ctr": 3.46,
+        "clicks": 215,
+        "impressions": 6212,
+        "cpm": 73091,
         "conversions": 5
       },
       {
@@ -4640,7 +4640,7 @@ window.TIKTOK_HISTORY = {
     ]
   },
   "2026-05-18": {
-    "scraped_at": "2026-05-19 16:56",
+    "scraped_at": "2026-05-19 17:00",
     "summary": {
       "spend": 624066,
       "revenue": 1159300,
