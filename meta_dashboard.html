@@ -1300,6 +1300,13 @@ function c24AvailDates() {
   return Object.keys(h).sort().reverse();
 }
 
+function c24AvailDatesForBrand() {
+  const h = window.CAFE24_HISTORY;
+  if (!h || !currentBrand) return c24AvailDates();
+  const branded = Object.keys(h).filter(d => h[d]?.[currentBrand]).sort().reverse();
+  return branded.length ? branded : c24AvailDates();
+}
+
 function buildC24DateSelects() {
   const dates = c24AvailDates();
   const sel = document.getElementById("c24DateSelect");
@@ -1369,7 +1376,7 @@ function normKey(s) {
 }
 
 function getC24DatesForMetaRange() {
-  const dates = c24AvailDates();
+  const dates = c24AvailDatesForBrand();
   if (!dates.length) return [];
   const todayStr     = new Date().toISOString().slice(0, 10);
   const yesterdayStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
@@ -1380,7 +1387,7 @@ function getC24DatesForMetaRange() {
   if (dateConfig.preset === "last_30d") return dates.slice(0, 30);
   if (dateConfig.since && dateConfig.until)
     return dates.filter(d => d >= dateConfig.since && d <= dateConfig.until);
-  return dates.filter(d => d === todayStr);
+  return dates.slice(0, 1);
 }
 
 function buildDirectSalesMap(isAd) {
