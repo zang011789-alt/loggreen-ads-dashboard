@@ -997,7 +997,7 @@ function renderDailyTable(data) {
 
   // 직접값 맵 (날짜별)
   const dsMapByDate = buildDirectSalesMapByDate(isAd);
-  const hasDirect = Object.values(dsMapByDate).some(m => Object.keys(m).length > 0);
+  const hasDirect = !!(window.CAFE24_HISTORY && currentBrand && Object.values(window.CAFE24_HISTORY).some(d => d?.[currentBrand]));
 
   // 그룹 합계 + spend 내림차순
   const groupList = Object.values(groups).map(g => {
@@ -1118,7 +1118,7 @@ function renderTable(data) {
 
   // 직접값 매출 맵 빌드 (Cafe24 히스토리 기반)
   const dsMap = buildDirectSalesMap(isAd);
-  const hasDirect = Object.keys(dsMap).length > 0;
+  const hasDirect = !!(window.CAFE24_HISTORY && currentBrand && Object.values(window.CAFE24_HISTORY).some(d => d?.[currentBrand]));
 
   const mob = isMobile();
   const H = (key, label, hide) => {
