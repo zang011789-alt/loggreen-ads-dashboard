@@ -7,6 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='50,5 20,45 35,45 20,75 45,75 45,95 55,95 55,75 80,75 65,45 80,45' fill='%2322c55e'/></svg>">
 <script src="cafe24_data.js" onerror="window.CAFE24_DATA=null"></script>
 <script src="cafe24_history.js" onerror="window.CAFE24_HISTORY=null"></script>
+<script src="tiktok_history.js" onerror="window.TIKTOK_HISTORY=null"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #0d1117; color: #e2e8f0; font-family: 'Apple SD Gothic Neo', -apple-system, sans-serif; min-height: 100vh; }
@@ -180,6 +181,17 @@ tbody tr:hover td { background: #1c2128; }
 .source-tab:hover { color: #c9d1d9; }
 .source-tab.active.meta    { background: #388bfd20; color: #58a6ff; }
 .source-tab.active.cafe24  { background: #f0883e20; color: #f0883e; }
+.source-tab.active.tiktok  { background: #ff004f20; color: #ff6b8a; }
+
+/* ── 틱톡 패널 ── */
+#tiktokPanel { display: none; }
+.tt-kpi-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.tt-kpi { background: #161b22; border: 1px solid #21262d; border-radius: 10px; padding: 14px 18px; flex: 1; min-width: 140px; position: relative; overflow: hidden; }
+.tt-kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: #ff6b8a; }
+.tt-kpi-label { font-size: 11px; color: #6e7681; margin-bottom: 6px; }
+.tt-kpi-value { font-size: 22px; font-weight: 800; color: #f0f6fc; }
+.tt-kpi-sub { font-size: 11px; color: #6e7681; margin-top: 4px; }
+.tt-no-data { padding: 40px; text-align: center; color: #6e7681; font-size: 14px; }
 
 /* ── 카페24 패널 ── */
 #cafe24Panel { display: none; }
@@ -364,6 +376,7 @@ select option { background: #161b22; color: #c9d1d9; }
     <div class="source-tabs">
       <button class="source-tab meta active" onclick="setSource('meta')">메타</button>
       <button class="source-tab cafe24" onclick="setSource('cafe24')">카페24</button>
+      <button class="source-tab tiktok" onclick="setSource('tiktok')">TikTok</button>
     </div>
     <span class="last-updated" id="lastUpdated">—</span>
     <button class="refresh-btn" id="refreshBtn" onclick="loadData()">
@@ -477,6 +490,48 @@ select option { background: #161b22; color: #c9d1d9; }
     </div>
     <div id="c24TableContent">
       <div class="c24-no-data">카페24 데이터를 불러오는 중...</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── 틱톡 패널 ── -->
+<div id="tiktokPanel">
+<div class="container">
+  <!-- 틱톡 날짜 컨트롤 -->
+  <div class="controls" style="margin-bottom:16px">
+    <div class="ctrl-row">
+      <div class="tab-group" id="ttPeriodTabs">
+        <button class="tab-btn active" data-ttperiod="7d" onclick="setTtPeriod(this)">최근 7일</button>
+        <button class="tab-btn" data-ttperiod="14d" onclick="setTtPeriod(this)">최근 14일</button>
+        <button class="tab-btn" data-ttperiod="30d" onclick="setTtPeriod(this)">최근 30일</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;background:#161b22;border:1px solid #21262d;border-radius:8px;padding:5px 12px;">
+        <span style="font-size:12px;color:#6e7681;">수집일</span>
+        <select id="ttDateSelect" onchange="renderTikTok()"
+          style="background:transparent;border:none;color:#c9d1d9;font-size:13px;outline:none;cursor:pointer;">
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 틱톡 KPI -->
+  <div class="tt-kpi-bar" id="ttKpiBar">
+    <div class="tt-kpi"><div class="tt-kpi-label">총 소진금액</div><div class="tt-kpi-value" id="tt-spend">—</div><div class="tt-kpi-sub" id="tt-spend-sub"></div></div>
+    <div class="tt-kpi"><div class="tt-kpi-label">매출 (틱톡 추적)</div><div class="tt-kpi-value" id="tt-revenue">—</div><div class="tt-kpi-sub" id="tt-revenue-sub"></div></div>
+    <div class="tt-kpi"><div class="tt-kpi-label">ROAS</div><div class="tt-kpi-value" id="tt-roas">—</div><div class="tt-kpi-sub" id="tt-roas-sub"></div></div>
+    <div class="tt-kpi"><div class="tt-kpi-label">전환 수</div><div class="tt-kpi-value" id="tt-conv">—</div><div class="tt-kpi-sub" id="tt-conv-sub"></div></div>
+    <div class="tt-kpi"><div class="tt-kpi-label">CPA</div><div class="tt-kpi-value" id="tt-cpa">—</div><div class="tt-kpi-sub" id="tt-cpa-sub"></div></div>
+  </div>
+
+  <!-- 틱톡 테이블 -->
+  <div class="table-section">
+    <div class="table-header-row">
+      <span class="table-title">TikTok 캠페인별</span>
+      <span class="table-meta" id="ttTableMeta"></span>
+    </div>
+    <div id="ttTableContent">
+      <div class="tt-no-data">데이터를 불러오는 중...</div>
     </div>
   </div>
 </div>
@@ -1276,20 +1331,32 @@ function setSource(src) {
   const kpiGrid     = document.querySelector(".kpi-grid");
   const tblSection  = document.querySelector("#dashboard .table-section");
 
+  const tiktokPanel = document.getElementById("tiktokPanel");
   if (src === "meta") {
-    controls.style.display   = "";
-    kpiGrid.style.display    = "";
-    tblSection.style.display = "";
+    controls.style.display    = "";
+    kpiGrid.style.display     = "";
+    tblSection.style.display  = "";
     cafe24Panel.style.display = "none";
+    tiktokPanel.style.display = "none";
     document.getElementById("refreshBtn").style.display = "";
-  } else {
-    controls.style.display   = "none";
-    kpiGrid.style.display    = "none";
-    tblSection.style.display = "none";
+  } else if (src === "cafe24") {
+    controls.style.display    = "none";
+    kpiGrid.style.display     = "none";
+    tblSection.style.display  = "none";
     cafe24Panel.style.display = "block";
+    tiktokPanel.style.display = "none";
     document.getElementById("refreshBtn").style.display = "none";
     buildC24DateSelects();
     renderC24();
+  } else { // tiktok
+    controls.style.display    = "none";
+    kpiGrid.style.display     = "none";
+    tblSection.style.display  = "none";
+    cafe24Panel.style.display = "none";
+    tiktokPanel.style.display = "block";
+    document.getElementById("refreshBtn").style.display = "none";
+    buildTtDateSelect();
+    renderTikTok();
   }
 }
 
@@ -1873,9 +1940,102 @@ function showBrandScreen() {
 }
 
 window.addEventListener('load', () => {
-  // 비밀번호 화면 통과 후 브랜드 화면 뜰 때 실행
   setTimeout(() => { renderTodayProductSales(); renderDailyTrendCharts(); }, 200);
 });
+
+// ══════════════════════════════════════════════════════
+// ── TikTok 패널 로직 ──
+// ══════════════════════════════════════════════════════
+let ttPeriod = "7d";
+
+function setTtPeriod(btn) {
+  ttPeriod = btn.dataset.ttperiod;
+  document.querySelectorAll("#ttPeriodTabs .tab-btn").forEach(b =>
+    b.classList.toggle("active", b === btn)
+  );
+  renderTikTok();
+}
+
+function buildTtDateSelect() {
+  const h = window.TIKTOK_HISTORY;
+  const sel = document.getElementById("ttDateSelect");
+  if (!h || !sel) return;
+  const dates = Object.keys(h).sort().reverse();
+  sel.innerHTML = dates.map(d => `<option value="${d}">${d}</option>`).join("");
+}
+
+function renderTikTok() {
+  const h = window.TIKTOK_HISTORY;
+  if (!h) {
+    document.getElementById("ttTableContent").innerHTML =
+      '<div class="tt-no-data">tiktok_history.js 파일이 없습니다.</div>';
+    return;
+  }
+
+  const sel = document.getElementById("ttDateSelect");
+  const dateKey = sel ? sel.value : Object.keys(h).sort().reverse()[0];
+  if (!dateKey || !h[dateKey]) {
+    document.getElementById("ttTableContent").innerHTML =
+      '<div class="tt-no-data">선택한 날짜에 데이터가 없습니다.</div>';
+    return;
+  }
+
+  const dayData = h[dateKey][ttPeriod];
+  if (!dayData) {
+    document.getElementById("ttTableContent").innerHTML =
+      `<div class="tt-no-data">${dateKey} 날짜에 ${ttPeriod} 데이터가 없습니다.</div>`;
+    return;
+  }
+
+  const campaigns = (dayData.campaigns || []).filter(c => c.spend > 0 || c.status === "active");
+  const sum = dayData.summary || {};
+
+  // KPI
+  const totalConv = campaigns.reduce((a, c) => a + (c.conversions || 0), 0);
+  const totalCpa  = totalConv > 0 ? Math.round(sum.spend / totalConv) : 0;
+  document.getElementById("tt-spend").textContent    = sum.spend > 0 ? fmtKRW(sum.spend) : "—";
+  document.getElementById("tt-spend-sub").textContent = `수집: ${dayData.scraped_at || ""}`;
+  document.getElementById("tt-revenue").textContent  = sum.revenue > 0 ? fmtKRW(sum.revenue) : "—";
+  document.getElementById("tt-revenue-sub").textContent = `${dayData.start_date} ~ ${dayData.end_date}`;
+  document.getElementById("tt-roas").textContent     = sum.roas > 0 ? (sum.roas * 100).toFixed(0) + "%" : "—";
+  document.getElementById("tt-roas-sub").textContent = sum.roas >= 1 ? "광고비 회수 중" : (sum.roas > 0 ? "⚠ 미회수" : "");
+  document.getElementById("tt-conv").textContent     = totalConv > 0 ? totalConv.toLocaleString() + "건" : "—";
+  document.getElementById("tt-conv-sub").textContent = campaigns.filter(c => c.status === "active").length + "개 캠페인 활성";
+  document.getElementById("tt-cpa").textContent      = totalCpa > 0 ? fmtKRW(totalCpa) : "—";
+  document.getElementById("tt-cpa-sub").textContent  = "전환당 비용";
+
+  document.getElementById("ttTableMeta").textContent = campaigns.length + "개 캠페인";
+
+  // 테이블
+  const sorted = [...campaigns].sort((a, b) => b.spend - a.spend);
+  let html = `<table><thead><tr>
+    <th>캠페인명</th><th>상태</th><th>CPA</th><th>광고비</th><th>매출</th>
+    <th>ROAS</th><th>전환</th><th>CPC</th><th>CTR</th><th>클릭</th><th>노출</th>
+  </tr></thead><tbody>`;
+
+  sorted.forEach(c => {
+    const roasPct = c.roas > 0 ? (c.roas * 100).toFixed(0) + "%" : "—";
+    const statusBadge = c.status === "active"
+      ? `<span style="color:#4ade80;font-size:11px;font-weight:700;">▶ 활성</span>`
+      : `<span style="color:#6e7681;font-size:11px;">■ 중지</span>`;
+    html += `<tr>
+      <td title="${c.name}" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.name}</td>
+      <td>${statusBadge}</td>
+      <td>${c.cpa > 0 ? fmtKRW(c.cpa) : "—"}</td>
+      <td><b>${fmtKRW(c.spend)}</b></td>
+      <td>${c.revenue > 0 ? fmtKRW(c.revenue) : "—"}</td>
+      <td><b>${roasPct}</b></td>
+      <td>${c.conversions > 0 ? c.conversions.toLocaleString() : "—"}</td>
+      <td>${c.cpc > 0 ? fmtKRW(c.cpc) : "—"}</td>
+      <td>${c.ctr > 0 ? c.ctr.toFixed(2) + "%" : "—"}</td>
+      <td>${c.clicks > 0 ? c.clicks.toLocaleString() : "—"}</td>
+      <td>${c.impressions > 0 ? c.impressions.toLocaleString() : "—"}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById("ttTableContent").innerHTML = html;
+}
 
 </script>
 </body>
