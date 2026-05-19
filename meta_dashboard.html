@@ -1433,6 +1433,17 @@ function lookupDirectSales(metaName, isAd, dsMap) {
       if (k && stripPfx(k) === metaS) return v;
     }
 
+    // 5. 세그먼트 기반 매칭 — 카페24 term에 숫자 코드(403 등)가 중간 삽입된 경우
+    // 메타 소재명의 모든 세그먼트가 카페24 term 세그먼트에 포함되면 매칭
+    const nmSegs = nm.split("_").filter(s => s.length > 0);
+    if (nmSegs.length >= 3) {
+      for (const [k, v] of Object.entries(dsMap)) {
+        if (!k) continue;
+        const kSegs = k.split("_").filter(s => s.length > 0);
+        if (nmSegs.every(s => kSegs.includes(s))) return v;
+      }
+    }
+
     console.warn(`[직접값 미매핑] Meta: "${nm}" | C24 샘플:`, Object.keys(dsMap).slice(0, 3));
     return null;
   } else {
