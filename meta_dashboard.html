@@ -911,7 +911,7 @@ function render() {
   document.getElementById("kpi-purchases").textContent    = tPurch.toLocaleString() + "건";
   document.getElementById("kpi-purch-sub").textContent    = "전환율 " + (tClick > 0 ? (tPurch / tClick * 100).toFixed(2) : 0) + "%";
   document.getElementById("kpi-roas").textContent         = (avgRoas * 100).toFixed(0) + "%";
-  document.getElementById("kpi-roas").className           = "kpi-value " + roasCls(avgRoas);
+  document.getElementById("kpi-roas").className           = "kpi-value";
   document.getElementById("kpi-roas-sub").textContent     = avgRoas >= 1 ? "광고비 회수 중" : "⚠ 광고비 미회수";
   document.getElementById("kpi-direct-roas").textContent  = directRoas != null ? (directRoas * 100).toFixed(0) + "%" : "—";
   document.getElementById("kpi-direct-roas").className    = "kpi-value " + (directRoas != null ? roasCls(directRoas) : "");
@@ -985,12 +985,12 @@ function renderDailyTable(data) {
 
   let html = `<table><thead><tr>`;
   if (isAd) {
-    html += `<th>소재명</th><th class="${mh.trim()}">캠페인</th><th>CPA</th><th>광고비</th><th>ROAS</th><th class="${mh.trim()}">매출</th>`;
-    if (hasDirect) html += `<th>직접ROAS</th><th>직접값</th>`;
+    html += `<th>소재명</th><th class="${mh.trim()}">캠페인</th><th>CPA</th><th>광고비</th><th class="${mh.trim()}">매출</th><th>ROAS</th>`;
+    if (hasDirect) html += `<th>직접값</th><th>직접ROAS</th>`;
     html += `<th class="${mh.trim()}">구매수</th><th class="${mh.trim()}">CPC</th><th class="${mh.trim()}">CTR</th><th class="${mh.trim()}">CVR</th><th class="${mh.trim()}">제품</th>`;
   } else {
-    html += `<th>캠페인명</th><th class="${mh.trim()}">제품</th><th>CPA</th><th>광고비</th><th>ROAS</th><th class="${mh.trim()}">매출</th>`;
-    if (hasDirect) html += `<th>직접ROAS</th><th>직접값</th>`;
+    html += `<th>캠페인명</th><th class="${mh.trim()}">제품</th><th>CPA</th><th>광고비</th><th class="${mh.trim()}">매출</th><th>ROAS</th>`;
+    if (hasDirect) html += `<th>직접값</th><th>직접ROAS</th>`;
     html += `<th class="${mh.trim()}">구매수</th><th class="${mh.trim()}">CPC</th><th class="${mh.trim()}">CTR</th><th class="${mh.trim()}">CVR</th>`;
   }
   html += `</tr></thead><tbody>`;
@@ -999,7 +999,7 @@ function renderDailyTable(data) {
     const tRoasPct = g.tRoas > 0 ? (g.tRoas * 100).toFixed(0) + "%" : "—";
     const tDR = (g.tDirect > 0 && g.tSpend > 0) ? g.tDirect / g.tSpend : null;
     const tDirectCell = hasDirect
-      ? `<td class="${tDR != null ? roasCls(tDR) : ''}">${tDR != null ? (tDR * 100).toFixed(0) + "%" : "—"}</td><td style="color:${g.tDirect > 0 ? "#f0883e" : "#4e5564"}">${g.tDirect > 0 ? fmtKRW(g.tDirect) : "—"}</td>`
+      ? `<td style="color:${g.tDirect > 0 ? "#f0883e" : "#4e5564"}">${g.tDirect > 0 ? fmtKRW(g.tDirect) : "—"}</td><td>${tDR != null ? (tDR * 100).toFixed(0) + "%" : "—"}</td>`
       : "";
 
     // 헤더 행
@@ -1008,7 +1008,7 @@ function renderDailyTable(data) {
       html += `<tr class="daily-header-row">
         <td title="${g.name}"><b>${g.name}</b></td><td class="cell-sub${mh}">${g.parent}</td>
         <td>${g.tCpa > 0 ? fmtKRW(g.tCpa) : "—"}</td><td><b>${fmtKRW(g.tSpend)}</b></td>
-        <td class="${roasCls(g.tRoas)}"><b>${tRoasPct}</b></td><td class="${mh.trim()}">${g.tRevenue > 0 ? fmtKRW(g.tRevenue) : "—"}</td>
+        <td class="${mh.trim()}">${g.tRevenue > 0 ? fmtKRW(g.tRevenue) : "—"}</td><td><b>${tRoasPct}</b></td>
         ${tDirectCell}
         <td class="${mh.trim()}">${g.tPurch > 0 ? g.tPurch.toLocaleString() : "—"}</td>
         <td class="${mh.trim()}">${g.tCpc > 0 ? fmtKRW(g.tCpc) : "—"}</td><td class="${mh.trim()}">${g.tCtr.toFixed(2)}%</td>
@@ -1022,7 +1022,7 @@ function renderDailyTable(data) {
         </td>
         <td class="${mh.trim()}"><span class="tag tag-${g.product.id}">${g.product.label}</span></td>
         <td>${g.tCpa > 0 ? fmtKRW(g.tCpa) : "—"}</td><td><b>${fmtKRW(g.tSpend)}</b></td>
-        <td class="${roasCls(g.tRoas)}"><b>${tRoasPct}</b></td><td class="${mh.trim()}">${g.tRevenue > 0 ? fmtKRW(g.tRevenue) : "—"}</td>
+        <td class="${mh.trim()}">${g.tRevenue > 0 ? fmtKRW(g.tRevenue) : "—"}</td><td><b>${tRoasPct}</b></td>
         ${tDirectCell}
         <td class="${mh.trim()}">${g.tPurch > 0 ? g.tPurch.toLocaleString() : "—"}</td>
         <td class="${mh.trim()}">${g.tCpc > 0 ? fmtKRW(g.tCpc) : "—"}</td><td class="${mh.trim()}">${g.tCtr.toFixed(2)}%</td>
@@ -1035,13 +1035,13 @@ function renderDailyTable(data) {
       const dv = lookupDirectSales(r.name, isAd, dsMapByDate[r.date] || {});
       const dr = (dv != null && r.spend > 0) ? dv / r.spend : null;
       const dCell = hasDirect
-        ? `<td class="${dr != null ? roasCls(dr) : ''}" style="${dr == null ? "color:#4e5564" : ""}">${dr != null ? (dr * 100).toFixed(0) + "%" : "—"}</td><td style="color:${dv != null ? "#f0883e" : "#4e5564"}">${dv != null ? fmtKRW(dv) : "—"}</td>`
+        ? `<td style="color:${dv != null ? "#f0883e" : "#4e5564"}">${dv != null ? fmtKRW(dv) : "—"}</td><td style="${dr == null ? "color:#4e5564" : ""}">${dr != null ? (dr * 100).toFixed(0) + "%" : "—"}</td>`
         : "";
       if (isAd) {
         html += `<tr class="daily-sub-row">
           <td>${r.date}</td><td class="${mh.trim()}">—</td>
           <td>${r.cpa > 0 ? fmtKRW(r.cpa) : "—"}</td><td>${fmtKRW(r.spend)}</td>
-          <td class="${roasCls(r.roas)}">${roasPct}</td><td class="${mh.trim()}">${r.revenue > 0 ? fmtKRW(r.revenue) : "—"}</td>
+          <td class="${mh.trim()}">${r.revenue > 0 ? fmtKRW(r.revenue) : "—"}</td><td>${roasPct}</td>
           ${dCell}
           <td class="${mh.trim()}">${r.purchases > 0 ? r.purchases.toLocaleString() : "—"}</td>
           <td class="${mh.trim()}">${r.cpc_val > 0 ? fmtKRW(r.cpc_val) : "—"}</td>
@@ -1050,7 +1050,7 @@ function renderDailyTable(data) {
         html += `<tr class="daily-sub-row">
           <td>${r.date}</td><td class="${mh.trim()}">—</td>
           <td>${r.cpa > 0 ? fmtKRW(r.cpa) : "—"}</td><td>${fmtKRW(r.spend)}</td>
-          <td class="${roasCls(r.roas)}">${roasPct}</td><td class="${mh.trim()}">${r.revenue > 0 ? fmtKRW(r.revenue) : "—"}</td>
+          <td class="${mh.trim()}">${r.revenue > 0 ? fmtKRW(r.revenue) : "—"}</td><td>${roasPct}</td>
           ${dCell}
           <td class="${mh.trim()}">${r.purchases > 0 ? r.purchases.toLocaleString() : "—"}</td>
           <td class="${mh.trim()}">${r.cpc_val > 0 ? fmtKRW(r.cpc_val) : "—"}</td>
@@ -1088,12 +1088,12 @@ function renderTable(data) {
 
   let html = `<table><thead><tr>`;
   if (isAd) {
-    html += `${H("name","소재명")}${H("parent","캠페인",mob)}${H("cpa","CPA")}${H("spend","광고비")}${H("roas","ROAS")}${H("revenue","매출",mob)}`;
-    if (hasDirect) html += `<th>직접ROAS</th><th>직접값</th>`;
+    html += `${H("name","소재명")}${H("parent","캠페인",mob)}${H("cpa","CPA")}${H("spend","광고비")}${H("revenue","매출",mob)}${H("roas","ROAS")}`;
+    if (hasDirect) html += `<th>직접값</th><th>직접ROAS</th>`;
     html += `${H("purchases","구매수",mob)}${H("cpc_val","CPC",mob)}${H("ctr","CTR",mob)}${H("cvr","CVR",mob)}<th class="${mob?'m-hide':''}">제품</th>`;
   } else {
-    html += `${H("name","캠페인명")}<th class="${mob?'m-hide':''}">제품</th>${H("cpa","CPA")}${H("spend","광고비")}${H("roas","ROAS")}${H("revenue","매출",mob)}`;
-    if (hasDirect) html += `<th>직접ROAS</th><th>직접값</th>`;
+    html += `${H("name","캠페인명")}<th class="${mob?'m-hide':''}">제품</th>${H("cpa","CPA")}${H("spend","광고비")}${H("revenue","매출",mob)}${H("roas","ROAS")}`;
+    if (hasDirect) html += `<th>직접값</th><th>직접ROAS</th>`;
     html += `${H("purchases","구매수",mob)}${H("cpc_val","CPC",mob)}${H("ctr","CTR",mob)}${H("cvr","CVR",mob)}`;
   }
   html += `</tr></thead><tbody>`;
@@ -1110,7 +1110,7 @@ function renderTable(data) {
     const directRoas = (directVal != null && c.spend > 0) ? directVal / c.spend : null;
     const directRoasPct = directRoas != null ? (directRoas * 100).toFixed(0) + "%" : "—";
     const directCell = hasDirect
-      ? `<td class="${directRoas != null ? roasCls(directRoas) : ''}" style="${directRoas == null ? 'color:#4e5564' : ''}">${directRoasPct}</td><td style="color:${directVal != null ? '#f0883e' : '#4e5564'}">${directVal != null ? (mob?fmtS(directVal):fmtKRW(directVal)) : "—"}</td>`
+      ? `<td style="color:${directVal != null ? '#f0883e' : '#4e5564'}">${directVal != null ? (mob?fmtS(directVal):fmtKRW(directVal)) : "—"}</td><td style="${directRoas == null ? 'color:#4e5564' : ''}">${directRoasPct}</td>`
       : "";
     const fN = mob ? fmtS : fmtKRW;
 
@@ -1120,8 +1120,8 @@ function renderTable(data) {
         <td class="cell-sub m-hide" title="${c.parent}">${c.parent}</td>
         <td>${c.cpa > 0 ? fmtKRW(c.cpa) : "—"}</td>
         <td>${fN(c.spend)}</td>
-        <td class="${roasCls(c.roas)}">${roasPct}</td>
         <td class="m-hide">${c.revenue > 0 ? fmtKRW(c.revenue) : "—"}</td>
+        <td>${roasPct}</td>
         ${directCell}
         <td class="m-hide">${c.purchases > 0 ? c.purchases.toLocaleString() : "—"}</td>
         <td class="m-hide">${cpcFmt}</td>
@@ -1139,8 +1139,8 @@ function renderTable(data) {
         <td class="m-hide"><span class="tag tag-${c.product.id}">${c.product.label}</span></td>
         <td>${c.cpa > 0 ? fmtKRW(c.cpa) : "—"}</td>
         <td>${fN(c.spend)}</td>
-        <td class="${roasCls(c.roas)}">${roasPct}</td>
         <td class="m-hide">${c.revenue > 0 ? fmtKRW(c.revenue) : "—"}</td>
+        <td>${roasPct}</td>
         ${directCell}
         <td class="m-hide">${c.purchases > 0 ? c.purchases.toLocaleString() : "—"}</td>
         <td class="m-hide">${cpcFmt}</td>
@@ -1159,13 +1159,13 @@ function renderTable(data) {
   const tDirectRoas = (tDirect > 0 && tSpend > 0) ? tDirect / tSpend : null;
   const tDirectRoasPct = tDirectRoas != null ? (tDirectRoas * 100).toFixed(0) + "%" : "—";
   const totalDirectCell = hasDirect
-    ? `<td class="${tDirectRoas != null ? roasCls(tDirectRoas) : ''}">${tDirectRoasPct}</td><td style="color:#f0883e">${tDirect > 0 ? fmtKRW(tDirect) : "—"}</td>`
+    ? `<td style="color:#f0883e">${tDirect > 0 ? fmtKRW(tDirect) : "—"}</td><td>${tDirectRoasPct}</td>`
     : "";
 
   if (isAd) {
-    html += `<tr class="total-row"><td>합계 (${sorted.length}개)</td><td class="m-hide">—</td><td>${tCpa > 0 ? fmtKRW(tCpa) : "—"}</td><td>${fmtKRW(tSpend)}</td><td class="${roasCls(tRoas)}">${tRoasPct}</td><td class="m-hide">${fmtKRW(tRevenue)}</td>${totalDirectCell}<td class="m-hide">${tPurch.toLocaleString()}</td><td class="m-hide">${tCpc > 0 ? fmtKRW(tCpc) : "—"}</td><td class="m-hide">${tCtr.toFixed(2)}%</td><td class="m-hide">${tCvr.toFixed(2)}%</td><td class="m-hide">—</td></tr>`;
+    html += `<tr class="total-row"><td>합계 (${sorted.length}개)</td><td class="m-hide">—</td><td>${tCpa > 0 ? fmtKRW(tCpa) : "—"}</td><td>${fmtKRW(tSpend)}</td><td class="m-hide">${fmtKRW(tRevenue)}</td><td>${tRoasPct}</td>${totalDirectCell}<td class="m-hide">${tPurch.toLocaleString()}</td><td class="m-hide">${tCpc > 0 ? fmtKRW(tCpc) : "—"}</td><td class="m-hide">${tCtr.toFixed(2)}%</td><td class="m-hide">${tCvr.toFixed(2)}%</td><td class="m-hide">—</td></tr>`;
   } else {
-    html += `<tr class="total-row"><td>합계 (${sorted.length}개)</td><td class="m-hide">—</td><td>${tCpa > 0 ? fmtKRW(tCpa) : "—"}</td><td>${fmtKRW(tSpend)}</td><td class="${roasCls(tRoas)}">${tRoasPct}</td><td class="m-hide">${fmtKRW(tRevenue)}</td>${totalDirectCell}<td class="m-hide">${tPurch.toLocaleString()}</td><td class="m-hide">${tCpc > 0 ? fmtKRW(tCpc) : "—"}</td><td class="m-hide">${tCtr.toFixed(2)}%</td><td class="m-hide">${tCvr.toFixed(2)}%</td></tr>`;
+    html += `<tr class="total-row"><td>합계 (${sorted.length}개)</td><td class="m-hide">—</td><td>${tCpa > 0 ? fmtKRW(tCpa) : "—"}</td><td>${fmtKRW(tSpend)}</td><td class="m-hide">${fmtKRW(tRevenue)}</td><td>${tRoasPct}</td>${totalDirectCell}<td class="m-hide">${tPurch.toLocaleString()}</td><td class="m-hide">${tCpc > 0 ? fmtKRW(tCpc) : "—"}</td><td class="m-hide">${tCtr.toFixed(2)}%</td><td class="m-hide">${tCvr.toFixed(2)}%</td></tr>`;
   }
   html += "</tbody></table>";
   document.getElementById("tableContent").innerHTML = html;
