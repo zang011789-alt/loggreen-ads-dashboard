@@ -145,6 +145,7 @@ tbody tr:hover td { background: #1c2128; }
 /* 아웃코마 제품 태그 */
 .tag-do  { background: #a78bfa20; color: #a78bfa; border: 1px solid #a78bfa40; }
 .total-row td { background: #1c2128 !important; font-weight: 700; color: #f0f6fc; border-top: 1px solid #30363d; }
+.budget-badge { margin-left: 5px; font-size: 10px; color: #6e7681; white-space: nowrap; }
 .sort-asc::after  { content: ' ↑'; }
 .sort-desc::after { content: ' ↓'; }
 /* 소재명 검색 */
@@ -529,6 +530,7 @@ let c24View       = "campaigns"; // "campaigns" | "contents" | "channels"
 let c24SortKey    = "order_amount";
 let searchQuery   = "";
 let c24SortDir    = -1;
+let budgetMap     = {};   // name → { type: "daily"|"lifetime", amount }
 
 // ── 날짜 초기값 ──
 (function () {
@@ -644,6 +646,39 @@ function fmtNum(n) {
 }
 function roasCls(v) { return v >= 2 ? "roas-good" : v >= 1 ? "roas-mid" : "roas-bad"; }
 
+// ── 예산 조회 ──
+async function fetchBudgets() {
+  const brand = BRANDS[currentBrand];
+  const map = {};
+  const fetchOne = async (accountId) => {
+    const base = `https://graph.facebook.com/v21.0/${accountId}`;
+    const qs = `access_token=${TOKEN}&limit=500&fields=name,daily_budget,lifetime_budget`;
+    const [campRes, adsetRes] = await Promise.all([
+      fetch(`${base}/campaigns?${qs}`),
+      fetch(`${base}/adsets?${qs}`),
+    ]);
+    const [campJson, adsetJson] = await Promise.all([campRes.json(), adsetRes.json()]);
+    for (const c of (campJson.data || [])) {
+      const db = parseInt(c.daily_budget || 0);
+      const lb = parseInt(c.lifetime_budget || 0);
+      if (db > 0 || lb > 0) map[c.name] = { type: db > 0 ? "일" : "총", amount: db > 0 ? db : lb };
+    }
+    for (const a of (adsetJson.data || [])) {
+      const db = parseInt(a.daily_budget || 0);
+      const lb = parseInt(a.lifetime_budget || 0);
+      if (db > 0 || lb > 0) map[a.name] = { type: db > 0 ? "일" : "총", amount: db > 0 ? db : lb };
+    }
+  };
+  await Promise.all(brand.accountIds.map(fetchOne));
+  budgetMap = map;
+}
+
+function budgetBadge(name) {
+  const b = budgetMap[name];
+  if (!b) return "";
+  return `<span class="budget-badge">예산 ${fmtS(b.amount)}</span>`;
+}
+
 // ── API 호출 ──
 async function fetchInsightsLevel(level) {
   const brand  = BRANDS[currentBrand];
@@ -693,6 +728,7 @@ async function fetchInsightsLevel(level) {
     return [{
       name:        isAd ? (c.ad_name || "—") : campName,
       parent:      isAd ? campName : "",
+      adset:       isAd ? (c.adset_name || "") : "",
       product,
       spend,
       purchases,
@@ -768,6 +804,7 @@ async function fetchInsightsDaily(level) {
     return [{
       name:    isAd ? (c.ad_name || "—") : campName,
       parent:  isAd ? campName : "",
+      adset:   isAd ? (c.adset_name || "") : "",
       product, spend, purchases, roas,
       cpa:     purchases > 0 ? spend / purchases : 0,
       cpc_val: parseFloat(c.cpc || 0) || (clicks > 0 ? spend / clicks : 0),
@@ -793,12 +830,14 @@ async function loadData() {
       [dailyCampaignCache, dailyAdCache] = await Promise.all([
         fetchInsightsDaily("campaign"),
         fetchInsightsDaily("ad"),
+        fetchBudgets(),
       ]);
       allData = currentLevel === "ad" ? dailyAdCache : dailyCampaignCache;
     } else {
       [campaignCache, adCache] = await Promise.all([
         fetchInsightsLevel("campaign"),
         fetchInsightsLevel("ad"),
+        fetchBudgets(),
       ]);
       allData = currentLevel === "ad" ? adCache : campaignCache;
     }
@@ -951,7 +990,7 @@ function renderDailyTable(data) {
   // 이름별 그룹핑
   const groups = {};
   data.forEach(row => {
-    if (!groups[row.name]) groups[row.name] = { name: row.name, parent: row.parent, product: row.product, rows: [] };
+    if (!groups[row.name]) groups[row.name] = { name: row.name, parent: row.parent, adset: row.adset || "", product: row.product, rows: [] };
     groups[row.name].rows.push(row);
   });
   Object.values(groups).forEach(g => g.rows.sort((a, b) => b.date.localeCompare(a.date)));
@@ -1006,7 +1045,7 @@ function renderDailyTable(data) {
     const escapedName = g.name.replace(/'/g, "\\'");
     if (isAd) {
       html += `<tr class="daily-header-row">
-        <td title="${g.name}"><b>${g.name}</b></td><td class="cell-sub${mh}">${g.parent}</td>
+        <td title="${g.name}"><b>${g.name}</b>${budgetBadge(g.adset)}</td><td class="cell-sub${mh}">${g.parent}</td>
         <td>${g.tCpa > 0 ? fmtKRW(g.tCpa) : "—"}</td><td><b>${fmtKRW(g.tSpend)}</b></td>
         <td class="${mh.trim()}">${g.tRevenue > 0 ? fmtKRW(g.tRevenue) : "—"}</td><td><b>${tRoasPct}</b></td>
         ${tDirectCell}
@@ -1019,6 +1058,7 @@ function renderDailyTable(data) {
         <td title="${g.name}" style="cursor:pointer;" onclick="drillDown('${escapedName}')">
           <span style="color:#58a6ff;text-decoration:underline dotted;"><b>${g.name}</b></span>
           <span style="font-size:10px;color:#4e5564;margin-left:4px;">▶</span>
+          ${budgetBadge(g.name)}
         </td>
         <td class="${mh.trim()}"><span class="tag tag-${g.product.id}">${g.product.label}</span></td>
         <td>${g.tCpa > 0 ? fmtKRW(g.tCpa) : "—"}</td><td><b>${fmtKRW(g.tSpend)}</b></td>
@@ -1116,7 +1156,7 @@ function renderTable(data) {
 
     if (isAd) {
       html += `<tr>
-        <td class="cell-name" title="${c.name}">${c.name}</td>
+        <td class="cell-name" title="${c.name}">${c.name}${budgetBadge(c.adset)}</td>
         <td class="cell-sub m-hide" title="${c.parent}">${c.parent}</td>
         <td>${c.cpa > 0 ? fmtKRW(c.cpa) : "—"}</td>
         <td>${fN(c.spend)}</td>
@@ -1135,6 +1175,7 @@ function renderTable(data) {
         <td class="cell-name" title="${c.name}" style="cursor:pointer;" onclick="drillDown('${escapedName}')">
           <span style="color:#58a6ff;text-decoration:underline dotted;">${c.name}</span>
           <span style="font-size:10px;color:#4e5564;margin-left:4px;">▶</span>
+          ${budgetBadge(c.name)}
         </td>
         <td class="m-hide"><span class="tag tag-${c.product.id}">${c.product.label}</span></td>
         <td>${c.cpa > 0 ? fmtKRW(c.cpa) : "—"}</td>
