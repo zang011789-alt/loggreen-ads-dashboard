@@ -463,21 +463,6 @@ window.TIKTOK_HISTORY = {
           "conversions": 0
         },
         {
-          "name": "tk_tp_spc_004",
-          "status": "paused",
-          "budget": 600000,
-          "cpa": 0,
-          "spend": 0,
-          "revenue": 0,
-          "roas": 0.0,
-          "cpc": 0,
-          "ctr": 0.0,
-          "clicks": 0,
-          "impressions": 0,
-          "cpm": 0,
-          "conversions": 0
-        },
-        {
           "name": "tk_tp_spc_003_틱톡",
           "status": "paused",
           "budget": 300000,
@@ -4902,16 +4887,16 @@ window.TIKTOK_HISTORY = {
           "name": "tk_tp_spc_004",
           "status": "active",
           "budget": 300000,
-          "cpa": 0,
-          "spend": 0,
-          "revenue": 0,
-          "roas": 0.0,
-          "cpc": 0,
+          "cpa": 27789,
+          "spend": 250098,
+          "revenue": 945700,
+          "roas": 3.78,
+          "cpc": 152,
           "ctr": 0.0,
-          "clicks": 0,
-          "impressions": 0,
+          "clicks": 1649,
+          "impressions": 14809,
           "cpm": 0,
-          "conversions": 0
+          "conversions": 9
         },
         {
           "name": "tk_kd_spc_022",
@@ -4927,21 +4912,6 @@ window.TIKTOK_HISTORY = {
           "impressions": 0,
           "cpm": 0,
           "conversions": 0
-        },
-        {
-          "name": "tk_tp_spc_004",
-          "status": "paused",
-          "budget": 600000,
-          "cpa": 27789,
-          "spend": 250098,
-          "revenue": 945700,
-          "roas": 3.78,
-          "cpc": 152,
-          "ctr": 11.14,
-          "clicks": 1649,
-          "impressions": 14809,
-          "cpm": 16888,
-          "conversions": 9
         },
         {
           "name": "tk_tp_spc_003_틱톡",
@@ -5645,7 +5615,7 @@ window.TIKTOK_HISTORY = {
           "cpa": 0,
           "spend": 0,
           "revenue": 0,
-          "roas": 0.0,
+          "roas": 0,
           "cpc": 0,
           "ctr": 0.0,
           "clicks": 0,
@@ -5667,21 +5637,6 @@ window.TIKTOK_HISTORY = {
           "impressions": 15252,
           "cpm": 13822,
           "conversions": 4
-        },
-        {
-          "name": "tk_tp_spc_004",
-          "status": "paused",
-          "budget": 600000,
-          "cpa": 0,
-          "spend": 0,
-          "revenue": 0,
-          "roas": 0.0,
-          "cpc": 0,
-          "ctr": 0.0,
-          "clicks": 0,
-          "impressions": 0,
-          "cpm": 0,
-          "conversions": 0
         },
         {
           "name": "tk_tp_spc_003_틱톡",
@@ -6385,7 +6340,7 @@ window.TIKTOK_HISTORY = {
           "cpa": 0,
           "spend": 0,
           "revenue": 0,
-          "roas": 0.0,
+          "roas": 0,
           "cpc": 0,
           "ctr": 0.0,
           "clicks": 0,
@@ -6407,21 +6362,6 @@ window.TIKTOK_HISTORY = {
           "impressions": 16034,
           "cpm": 11129,
           "conversions": 1
-        },
-        {
-          "name": "tk_tp_spc_004",
-          "status": "paused",
-          "budget": 600000,
-          "cpa": 0,
-          "spend": 0,
-          "revenue": 0,
-          "roas": 0.0,
-          "cpc": 0,
-          "ctr": 0.0,
-          "clicks": 0,
-          "impressions": 0,
-          "cpm": 0,
-          "conversions": 0
         },
         {
           "name": "tk_tp_spc_003_틱톡",
@@ -7125,7 +7065,7 @@ window.TIKTOK_HISTORY = {
           "cpa": 0,
           "spend": 0,
           "revenue": 0,
-          "roas": 0.0,
+          "roas": 0,
           "cpc": 0,
           "ctr": 0.0,
           "clicks": 0,
@@ -7147,21 +7087,6 @@ window.TIKTOK_HISTORY = {
           "impressions": 15061,
           "cpm": 13984,
           "conversions": 3
-        },
-        {
-          "name": "tk_tp_spc_004",
-          "status": "paused",
-          "budget": 600000,
-          "cpa": 0,
-          "spend": 0,
-          "revenue": 0,
-          "roas": 0.0,
-          "cpc": 0,
-          "ctr": 0.0,
-          "clicks": 0,
-          "impressions": 0,
-          "cpm": 0,
-          "conversions": 0
         },
         {
           "name": "tk_tp_spc_003_틱톡",
@@ -7865,7 +7790,7 @@ window.TIKTOK_HISTORY = {
           "cpa": 0,
           "spend": 0,
           "revenue": 0,
-          "roas": 0.0,
+          "roas": 0,
           "cpc": 0,
           "ctr": 0.0,
           "clicks": 0,
@@ -7887,21 +7812,6 @@ window.TIKTOK_HISTORY = {
           "impressions": 11998,
           "cpm": 16973,
           "conversions": 2
-        },
-        {
-          "name": "tk_tp_spc_004",
-          "status": "paused",
-          "budget": 600000,
-          "cpa": 0,
-          "spend": 0,
-          "revenue": 0,
-          "roas": 0.0,
-          "cpc": 0,
-          "ctr": 0.0,
-          "clicks": 0,
-          "impressions": 0,
-          "cpm": 0,
-          "conversions": 0
         },
         {
           "name": "tk_tp_spc_003_틱톡",
@@ -8626,21 +8536,6 @@ window.TIKTOK_HISTORY = {
           "clicks": 614,
           "impressions": 7544,
           "cpm": 13738,
-          "conversions": 0
-        },
-        {
-          "name": "tk_tp_spc_004",
-          "status": "paused",
-          "budget": 600000,
-          "cpa": 0,
-          "spend": 0,
-          "revenue": 0,
-          "roas": 0.0,
-          "cpc": 0,
-          "ctr": 0.0,
-          "clicks": 0,
-          "impressions": 0,
-          "cpm": 0,
           "conversions": 0
         },
         {

@@ -122,7 +122,21 @@ def scrape_campaigns(page, camp_pat):
         except:
             pass
         i += 1
-    return campaigns
+
+    # 중복 제거: 같은 캠페인명 → active 상태 우선, 수치 합산
+    seen = {}
+    for c in campaigns:
+        k = c['name']
+        if k not in seen:
+            seen[k] = dict(c)
+        else:
+            m = seen[k]
+            if c['status'] == 'active':
+                m['status'] = 'active'
+            for f in ('spend', 'revenue', 'conversions', 'clicks', 'impressions', 'cpa', 'cpc'):
+                m[f] = m[f] + c[f] if m[f] == 0 else m[f]
+            m['roas'] = round(m['revenue'] / m['spend'], 2) if m['spend'] else 0
+    return list(seen.values())
 
 def scrape_ads(page):
     page.wait_for_timeout(3000)
