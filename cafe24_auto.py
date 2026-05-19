@@ -175,7 +175,7 @@ async def collect_brand(account, yesterday_str, today_str):
     return result
 
 HISTORY_FILE = OUTPUT_DIR / "cafe24_history.json"
-MAX_DAYS = 90
+MAX_DAYS = 180
 
 async def main():
     today     = date.today()
@@ -203,8 +203,9 @@ async def main():
     else:
         history = {}
 
-    # 어제 확정 데이터 저장
-    history[yesterday_str] = {}
+    # 어제 확정 데이터 저장 (성공한 브랜드만 업데이트, 기존 데이터 보존)
+    if yesterday_str not in history:
+        history[yesterday_str] = {}
     for brand_name, result in all_results.items():
         history[yesterday_str][brand_name] = {
             "campaigns": result.get("campaigns_yesterday", []),
@@ -214,8 +215,9 @@ async def main():
             "products":  result.get("products_yesterday", []),
         }
 
-    # 오늘 실시간 데이터 저장 (매 실행마다 덮어씌움)
-    history[today_str] = {}
+    # 오늘 실시간 데이터 저장 (성공한 브랜드만 업데이트, 기존 데이터 보존)
+    if today_str not in history:
+        history[today_str] = {}
     for brand_name, result in all_results.items():
         history[today_str][brand_name] = {
             "campaigns": result.get("campaigns_today", []),

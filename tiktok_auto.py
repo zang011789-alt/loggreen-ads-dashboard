@@ -237,7 +237,14 @@ def load_history():
             h[date_key] = {"outcoma": v}
     return h
 
+MAX_DAYS = 180
+
 def save_history(history):
+    # 180일 초과 시 오래된 날짜부터 삭제
+    dates = sorted(history.keys())
+    while len(dates) > MAX_DAYS:
+        del history[dates.pop(0)]
+
     with open(HISTORY_JSON, "w", encoding="utf-8") as f:
         json.dump(history, f, ensure_ascii=False, indent=2)
     with open(HISTORY_JS, "w", encoding="utf-8") as f:
