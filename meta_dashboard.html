@@ -1373,8 +1373,8 @@ function getC24DatesForMetaRange() {
   if (!dates.length) return [];
   const todayStr     = new Date().toISOString().slice(0, 10);
   const yesterdayStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  if (dateConfig.preset === "today")     return dates.filter(d => d === todayStr);
-  if (dateConfig.preset === "yesterday") return dates.filter(d => d === yesterdayStr);
+  if (dateConfig.preset === "today")     { const r = dates.filter(d => d === todayStr);     return r.length ? r : dates.slice(0, 1); }
+  if (dateConfig.preset === "yesterday") { const r = dates.filter(d => d === yesterdayStr); return r.length ? r : dates.slice(0, 1); }
   if (dateConfig.preset === "last_7d")  return dates.slice(0, 7);
   if (dateConfig.preset === "last_14d") return dates.slice(0, 14);
   if (dateConfig.preset === "last_30d") return dates.slice(0, 30);
