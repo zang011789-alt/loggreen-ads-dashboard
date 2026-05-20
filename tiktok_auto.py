@@ -276,10 +276,25 @@ def git_push():
     except Exception as e:
         print(f"  git push 실패: {e}", flush=True)
 
+CHROME_EXE = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+CHROME_DIR = r"C:\Temp\chrome_tt2"
+
+def ensure_chrome():
+    """포트 9222 응답 없으면 Chrome 자동 실행"""
+    import socket, time
+    s = socket.socket()
+    try:
+        s.connect(("localhost", 9222)); s.close(); return
+    except: s.close()
+    print("  Chrome 디버그 모드 없음 → 자동 실행", flush=True)
+    subprocess.Popen([CHROME_EXE, f"--remote-debugging-port=9222", f"--user-data-dir={CHROME_DIR}"])
+    time.sleep(5)
+
 def run(dates_to_collect, brands_to_collect=None, skip_push=False):
     if brands_to_collect is None:
         brands_to_collect = list(BRANDS.keys())
     history = load_history()
+    ensure_chrome()
 
     with sync_playwright() as p:
         browser = p.chromium.connect_over_cdp("http://localhost:9222")
